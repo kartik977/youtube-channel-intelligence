@@ -25,36 +25,61 @@ const tag=(raw)=>{
   if(value.length<3||blockers.has(value.toLowerCase()))return null;
   return '#'+value;
 };
-function keywords(text){
-  const stop=new Set('the a an and or for your my our to of with on in at is are was were i we you me best top new part lets this that how why what when from into watch live stream shorts video gameplay play playing highlights review reaction about challenge full vs versus day episode next content try tried my own gets'.split(' '));
-  return tidy(text,200).replace(/[^\p{L}\p{N}]+/gu,' ').split(/\s+/u)
-    .filter(x=>x.length>2&&!stop.has(x.toLowerCase())&&!/^\d+$/.test(x)).slice(0,12);
-}
-const uniq = array=>[...new Set(array.map(x=>x.toLowerCase()))];
+// Conservative matches: tag a named subject only if it actually appears in the brief.
 function makeTags(brief){
-  const parts=keywords(brief.topic);
-  const words=uniq(parts);
   const context=(brief.topic+' '+brief.description).toLowerCase();
-  const gaming=/gaming|gameplay|game\b|ps5|xbox|nintendo|playstation|minecraft|fifa|ea sports|cricket 26|call of duty|cod\b|valorant|fortnite|gta\b|battlefield/.test(context);
+  const gaming=/gaming|gameplay|video game|ps5|xbox|playstation|nintendo|minecraft|fifa|ea sports|cricket\s*26|call of duty|\bcod\b|modern warfare|valorant|fortnite|\bgta\b|battlefield/.test(context);
   const cricket=/cricket/.test(context);
   const football=/football|soccer|fifa/.test(context);
-  const tech=/technology|software|coding|programming|iphone|android|gadget|laptop|review\b/.test(context)&&!gaming;
-  const candidates=[
-    words.slice(0,2).join(''),
-    words[0],
-    words.slice(1,3).join(''),
-    gaming&&cricket?'CricketGaming':gaming&&football?'FootballGaming':gaming?'Gaming':tech?'TechReview':null,
-    brief.kind==='short'?'Shorts':brief.kind==='live'?'LiveStream':gaming?'Gameplay':tech?'TechTips':null,
-    gaming?'GamingCommunity':cricket?'Cricket':football?'Football':tech?'Technology':null
+  const tech=/technology|software|coding|programming|iphone|android|gadget|laptop|developer|tutorial|spring boot/.test(context)&&!gaming;
+  const rules=[
+    [/cricket\s*26/i,'Cricket26','Identifies the exact cricket game in the brief.'],
+    [/call\s*of\s*duty/i,'CallOfDuty','Identifies the featured game franchise.'],
+    [/modern\s*warfare/i,'ModernWarfare','Identifies the game series in the brief.'],
+    [/\bcod\b/i,'COD','Matches the explicit game abbreviation.'],
+    [/\bmw4\b/i,'MW4','Matches the game name used in the topic.'],
+    [/\b(ps5|playstation\s*5)\b/i,'PS5','Matches the platform mentioned by the creator.'],
+    [/\b(ps4|playstation\s*4)\b/i,'PS4','Matches the platform mentioned by the creator.'],
+    [/minecraft/i,'Minecraft','Matches the specific game.'],
+    [/fortnite/i,'Fortnite','Matches the specific game.'],
+    [/valorant/i,'Valorant','Matches the specific game.'],
+    [/\bfifa\b/i,'FIFA','Matches the game mentioned in the video.'],
+    [/\b(football|soccer)\b/i,'Football','Matches the content topic.'],
+    [/\bcricket\b/i,'Cricket','Matches the content topic.'],
+    [/spring\s*boot/i,'SpringBoot','Matches the technology explained in the video.'],
+    [/\bjavascript\b/i,'JavaScript','Matches the programming language discussed.'],
+    [/\bpython\b/i,'Python','Matches the programming language discussed.'],
+    [/\bjava\b/i,'Java','Matches the programming language discussed.'],
+    [/\breact(js)?\b/i,'ReactJS','Matches the framework discussed.'],
+    [/\biphone\b/i,'iPhone','Matches the device discussed.'],
+    [/\bandroid\b/i,'Android','Matches the device platform discussed.']
   ];
+  const candidates=[];
+  for(const [regex,value,reason] of rules)if(regex.test(context))candidates.push({value,reason});
+  // When an explicit named game is in the text, prefer a connected niche tag.
+  if(gaming&&cricket)candidates.push({value:'CricketGaming',reason:'Connects the cricket game with viewers looking for gameplay.'});
+  else if(gaming&&football)candidates.push({value:'FootballGaming',reason:'Connects the football topic with gaming content.'});
+  else if(gaming)candidates.push({value:'Gaming',reason:'Matches the gaming niche mentioned in the brief.'});
+  if(gaming&&/\b(ps5|playstation)\b/i.test(context))
+    candidates.push({value:'PS5Gameplay',reason:'Specifies gameplay on the PS5, which the brief mentions.'});
+  if(tech&&/review|tested|comparison/i.test(context))
+    candidates.push({value:'TechReview',reason:'Matches the described technology review or comparison format.'});
+  if(brief.kind==='short')candidates.push({value:'Shorts',reason:'Describes the Shorts format.'});
+  if(brief.kind==='live')candidates.push({value:'LiveStream',reason:'Describes the live broadcast format.'});
+  if(gaming)candidates.push({value:brief.kind==='live'?'GamingLive':brief.kind==='short'?'GamingShorts':'Gameplay',reason:'Describes this gaming video format.'});
+  if(tech)candidates.push({value:'TechTips',reason:'Describes the technology niche, if this video provides tips.'});
+  // If no specific patterns match, use literal keywords from the actual title.
+  const words=brief.topic.replace(/[^\p{L}\p{N}]+/gu,' ').split(/\s+/u)
+     .filter(w=>w.length>3&&!/^(with|the|your|that|this|about|live|video|stream|part|from|what|watch|have|will|into|shorts)$/i.test(w));
+  if(candidates.length<3){
+    for(const word of words.slice(0,5))candidates.push({value:word,reason:'Directly names a subject mentioned in the title.'});
+  }
   const seen=new Set(),out=[];
-  for(const possible of candidates) {
-    if(!possible)continue;
-    const hashtag=tag(possible);
+  for(const candidate of candidates) {
+    const hashtag=tag(candidate.value);
     if(!hashtag||seen.has(hashtag.toLowerCase()))continue;
     seen.add(hashtag.toLowerCase());
-    out.push({tag:hashtag,category:out.length<3?'primary':'alternative',
-      reason:out.length<3?'Matches the video topic or intended viewer search.':'Optional niche/format context. Use only if directly relevant.'});
+    out.push({tag:hashtag,category:out.length<3?'primary':'alternative',reason:candidate.reason});
     if(out.length===5)break;
   }
   return out;
