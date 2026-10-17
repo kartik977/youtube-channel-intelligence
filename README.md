@@ -1,6 +1,6 @@
 # ChannelScope — YouTube Channel Intelligence
 
-A responsive, dark-mode analytics website for exploring **public YouTube channel data**. Built with React + Vite and a Cloudflare Pages Function. No paid API service or database required for the starter.
+A responsive, dark-mode analytics website for exploring **public YouTube channel data**. Built with React + Vite, a Cloudflare Worker, and public YouTube Data API access. No paid service or database is required for the starter.
 
 ## Version 0.1 features
 
@@ -114,57 +114,3 @@ Groq's free-tier rate limits can change. If its API is unavailable or rate-limit
 ### Local checks
 
 Run **npm test**, then **npm run build**. For local backend testing, configure a git-ignored .dev.vars file based on .dev.vars.example and run **npm run dev:full**. The new POST /api/advisor route operates alongside the unchanged GET /api/channel route.
-
-
-## Thumbnail Intelligence — free thumbnail builder
-
-Open **Thumbnail Intelligence** in the sidebar. Choose the content type:
-
-- **Video** or **Live:** export a 1280×720 PNG (16:9). Live artwork automatically gets a LIVE NOW badge.
-- **Short:** export vertical 1080×1920 poster artwork (9:16). **Important:** YouTube Shorts normally use a selected video frame for the Shorts thumbnail; directly uploading a custom PNG as the YouTube Shorts cover may not be supported. Use this design as a reference, an edited video frame, or promotional artwork.
-
-Enter your topic, optional description and style (gaming, sports, dramatic, energetic, tech or minimal). The studio can optionally add your **own** PNG/JPEG/WebP gameplay screenshot, photo or channel logo (up to 8 MB each). Images remain in your browser; the server never receives uploaded pictures.
-
-1. Select **Generate three concepts** for three topic-specific headline, supporting-line and composition suggestions.
-2. Switch between **Hero impact**, **Split story** and **Cinematic** concepts. Each uses a distinct canvas composition.
-3. Adjust the headline, supporting text, style or uploaded images; the full-resolution preview updates immediately.
-4. Select **Download full-resolution PNG**. The downloaded PNG is composed in the browser with the Canvas API—no paid image generation service, watermark or subscription needed.
-
-**Generative text suggestions:** If the Worker has an active **GROQ_API_KEY** (the same optional secret used by AI Creator Advisor), it asks Groq for creative copy and reasons to test each concept. No new API key is needed if that secret already works. Otherwise the page uses **FREE GUIDED CONCEPTS**, which work without any AI provider. On Groq failures, it shows a safe explanation and uses those free concepts.
-
-**Clarification:** This makes real, downloadable designed thumbnails from shapes, gradients, text and optional user-supplied photos; it does **not** generate new photorealistic images or claim to estimate actual YouTube click-through rate. Creator screenshots and logos remain local. Public channel video titles (up to five) and your topic/description can be sent to Groq to inform concept text when Groq mode is enabled.
-
-**Deploy:** GitHub merge to main triggers the existing Cloudflare Worker build, when GitHub integration is configured. The Worker routes **POST /api/thumbnail** alongside unchanged **GET /api/channel** and **POST /api/advisor**. For manual deployment, run npm install, npm test, npm run build and npx wrangler deploy. Existing YOUTUBE_API_KEY and GROQ_API_KEY secrets should remain attached.
-
-
-
-## Custom AI thumbnail images — OpenAI Image Generator
-
-Thumbnail Intelligence has two modes:
-
-- **AI Image Generator** — creates custom cinematic image artwork from the title, description, format, style and direction; optionally edits a user-provided screenshot/photo as reference. Uses OpenAI's GPT Image 2.5 Flare via the **separately billed OpenAI API**.
-- **Free Thumbnail Builder** — the existing unlimited, no-paid-API canvas templates, subject/logo uploads, Groq text concepts and PNG export. This mode has not been removed.
-
-### Enable billed image generation (opt-in)
-
-1. Create an OpenAI API key through https://platform.openai.com/api-keys and enable API billing/credits in your developer project if required. **ChatGPT Plus/Pro does not include OpenAI API credits.**
-2. Review pricing and set project spend/rate limits or budget alerts at https://platform.openai.com/settings/organization/billing/overview and your project's **Limits** controls. Every successful generation or reference edit can incur charges. Prices and access requirements change.
-3. In Cloudflare Workers & Pages → channelscope → Settings → Variables and Secrets, add encrypted secrets:
-   - OPENAI_API_KEY = your private **OpenAI API** key (not your Groq or YouTube key).
-   - THUMBNAIL_ACCESS_CODE = a strong, random access code of **at least 12 characters**, preferably 24+ characters. Do **not** put this code in GitHub or JavaScript.
-4. Apply/deploy the secret changes. The main branch contains the new **POST /api/thumbnail-image** route. Redeploy the latest commit if the integration hasn't rolled out.
-5. In ChannelScope select Thumbnail Intelligence → **AI Image Generator**, enter the title, description, content type, art style, and (optionally) your own reference photo or gameplay screenshot (PNG/JPEG/WebP under 4 MB). Enter the private **access code** in the website—not your OpenAI API key.
-6. Click **Generate one AI thumbnail**. Each click requests exactly **one** potentially billable image (not three). The page can keep the most recent three deliberately generated variations in browser memory. Edit the headline overlay and export to PNG without more API calls.
-
-The generated artwork itself contains **no embedded labels**; ChannelScope adds editable title text and a LIVE badge in the browser. Videos/Lives export at **1280×720 PNG**, Shorts artwork at **1080×1920 PNG** (9:16 vertical). Custom Shorts cover uploads may be restricted by YouTube.
-
-### Cost and privacy safeguards
-
-- The endpoint is **disabled until both secrets exist**, and every image request requires the access code. No generation is triggered on page load, title typing, preview changes or download.
-- Only one image is requested per click at medium quality. **Provider costs are variable** based on model and image usage. Actual charges depend on your OpenAI billing project and API usage; a code guard does not guarantee a spending cap.
-- Protect the access code. Anyone who knows it and can reach this public Worker may trigger billable generation. For a public launch, add **Cloudflare Access, server-side usage quotas and abuse controls** before giving the code to others.
-- For text-only image generation, title/description are sent to OpenAI via your Worker. For optional reference editing, the selected user image is sent to OpenAI only when the user chooses Generate. The Worker never sends the OpenAI key to the browser. Image results remain only in the current browser session; no images are stored by this application.
-- Cloudflare's free hosting tier does not make paid OpenAI API calls free. Groq's optional free text service and YouTube Data API keys remain unchanged.
-- If OpenAI needs API organization verification for image models, or your model access/billing is unavailable, the new UI displays a non-secret error; you can still use the free builder.
-
-To check code quality, run npm test and npm run build. To deploy locally, use npm install && npm run build && npx wrangler deploy. **Do not put production secrets in source control.**
