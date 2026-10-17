@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Image as ImageIcon, WandSparkles, Sparkles, Download, Upload, Trash2, AlertCircle, RefreshCw, Check, Info, Layers3, Video, Radio, Clapperboard, Palette } from 'lucide-react';
 import { renderThumbnail, thumbnailDimensions, THUMBNAIL_STYLES } from './thumbnailRenderer';
 import './thumbnail.css';
+import AIThumbnailGenerator from './AIThumbnailGenerator';
 
 const layouts = [
   {name:'Hero impact',description:'Bold text + subject focus'},
@@ -38,7 +39,7 @@ function handleImageFile(event,setFile,setError) {
   setError('');
   setFile(file);
 }
-export default function ThumbnailIntelligence({data}) {
+function FreeThumbnailBuilder({data}) {
   const [kind,setKind]=useState('video');
   const [topic,setTopic]=useState('');
   const [description,setDescription]=useState('');
@@ -205,4 +206,26 @@ export default function ThumbnailIntelligence({data}) {
       {note&&<p className="thumb-note"><Info size={16}/>{note}</p>}
     </section>
   </>;
+}
+
+
+// Keep free browser-rendered thumbnails available unchanged, alongside paid AI art.
+export default function ThumbnailIntelligence({data}) {
+  const [editor,setEditor]=useState('ai');
+  return <div className="thumb-mode-container">
+    <div className="page-heading thumb-page-heading">
+      <div className="eyebrow">CHANNELSCOPE · THUMBNAIL INTELLIGENCE ✦</div>
+      <h1>Make your next thumbnail<span className="accent">.</span></h1>
+      <p>Create custom scene artwork with OpenAI, or design a free thumbnail from templates and your own pictures.</p>
+    </div>
+    <div className="thumb-mode-switch" role="group" aria-label="Thumbnail creator mode">
+      <button type="button" className={editor==='ai'?'selected':''} onClick={()=>setEditor('ai')}>
+        <Sparkles size={17}/> AI Image Generator <span>OpenAI · Paid per image</span>
+      </button>
+      <button type="button" className={editor==='builder'?'selected':''} onClick={()=>setEditor('builder')}>
+        <Layers3 size={17}/> Free Thumbnail Builder <span>Unlimited local exports</span>
+      </button>
+    </div>
+    {editor==='ai'?<AIThumbnailGenerator data={data}/>:<FreeThumbnailBuilder data={data}/>}
+  </div>;
 }

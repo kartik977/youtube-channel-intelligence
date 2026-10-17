@@ -5,3 +5,8 @@ YOUTUBE_API_KEY=replace_with_your_api_key
 # Create a key at https://console.groq.com/keys (never commit your real key).
 # GROQ_API_KEY=replace_with_your_groq_key
 # GROQ_MODEL=openai/gpt-oss-20b
+
+# OpenAI image generation is OPTIONAL and BILLED by OpenAI (not ChatGPT).
+# Do not commit a real key or access code. Keep both encrypted in Cloudflare.
+# OPENAI_API_KEY=sk-your-openai-api-key
+# THUMBNAIL_ACCESS_CODE=make-this-a-long-random-private-passphrase

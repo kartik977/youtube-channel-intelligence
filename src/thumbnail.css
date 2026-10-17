@@ -79,3 +79,11 @@
 @media(max-width:1150px) {.thumb-editor-grid {grid-template-columns:1fr}.thumb-preview-panel {order:2}}
 @media(max-width:740px) {.thumb-concepts {grid-template-columns:1fr}.thumb-intro {flex-wrap:wrap}.thumb-stage.thumb-vertical {min-height:390px}.thumb-stage.thumb-vertical canvas {max-height:440px}}
 @media(max-width:410px) {.thumb-format {padding:11px 8px}.thumb-format strong {font-size:10px}.thumb-format small {font-size:8px}.thumb-upload-grid {grid-template-columns:1fr}.thumb-intro-badge {width:46px;height:46px}.thumb-form-panel,.thumb-preview-panel {padding:15px}}
+
+
+.thumb-mode-switch{display:flex;gap:12px;flex-wrap:wrap;background:#171925;border:1px solid #343748;border-radius:13px;padding:9px;margin-bottom:23px}
+.thumb-mode-switch button{flex:1 1 220px;border:1px solid transparent;background:transparent;color:#ccd0db;border-radius:10px;padding:14px 17px;text-align:left;font-size:13px;font-weight:800;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer}
+.thumb-mode-switch button span{font-size:10px;color:#949baf;font-weight:600;margin-left:auto}
+.thumb-mode-switch button.selected{background:linear-gradient(110deg,#4c2a42,#322b41);color:#fff;border-color:#c86488}
+.thumb-mode-switch button.selected svg{color:#ff9bb3}
+.thumb-mode-switch button:focus-visible{outline:2px solid #ffa8b6;outline-offset:2px}

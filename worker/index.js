@@ -3,6 +3,7 @@
 import { onRequestGet } from '../functions/api/channel.js';
 import { onRequestPost } from '../functions/api/advisor.js';
 import { onRequestPost as onThumbnailRequest } from '../functions/api/thumbnail.js';
+import { onRequestPost as onImageRequest } from '../functions/api/thumbnail-image.js';
 
 const json = (body, status) => new Response(JSON.stringify(body), {
   status,
@@ -38,6 +39,11 @@ export default {
     if (path === '/api/thumbnail') {
       if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
       return onThumbnailRequest({ request, env });
+    }
+
+    if (path === '/api/thumbnail-image') {
+      if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
+      return onImageRequest({ request, env });
     }
 
     if (path.startsWith('/api/')) {
