@@ -15,6 +15,7 @@ const tones=[
 ];
 const copyText=(value)=>navigator.clipboard.writeText(value);
 const seemsLink=value=>/^(?:https?:\/\/|(?:www\.|m\.|music\.)?youtube\.com\/|(?:www\.)?youtu\.be\/)/i.test(value.trim());
+const descriptionLacksDetails=value=>value.replace(/https?:\/\/\S+/gi,' ').replace(/#[\p{L}\p{N}_]+/gu,' ').trim().split(/\s+/).filter(w=>w.length>1).length<4;
 async function findVideo(url){
   const res=await fetch('/api/video?input='+encodeURIComponent(url.trim()));
   if(!res.headers.get('content-type')?.includes('application/json'))throw new Error('YouTube video lookup is not deployed yet.');
@@ -189,6 +190,7 @@ export default function VideoOptimizer({data}) {
           <label htmlFor="vo-description">Describe what actually happens in the video <span>Optional but helpful</span></label>
           <textarea id="vo-description" rows={5} maxLength={650} value={description} onChange={e=>setDescription(e.target.value)}
             placeholder="Describe the game, mission, highlight, result, audience benefit, or anything unique. Only describe things actually in your video."/>
+          {loadedVideo&&descriptionLacksDetails(description)&&<p className="vo-sparse-warning" role="status"><Info size={15}/> This video's public description contains little beyond hashtags or links. Add a few verified details about what actually happens to get more specific AI recommendations. ChannelScope cannot watch the footage.</p>}
           <label htmlFor="vo-audience">Intended audience <span>Optional</span></label>
           <input id="vo-audience" maxLength={100} value={audience} onChange={e=>setAudience(e.target.value)}
             placeholder="e.g. casual PS5 players and cricket fans"/>
@@ -206,7 +208,7 @@ export default function VideoOptimizer({data}) {
       <section className="vo-result-panel">
         <div className="vo-results-head">
           <div><small>YOUR NEXT UPLOAD</small><h2>Publishing pack</h2></div>
-          {report&&<span className={'vo-mode '+(report.mode==='ai'?'vo-ai':'')}>{report.mode==='ai'?'AI-GENERATED':'FREE DRAFT MODE'}</span>}
+          {report&&<span className={'vo-mode '+(report.mode==='ai'?'vo-ai':report.mode==='hybrid'?'vo-hybrid':'')}>{report.mode==='ai'?'AI-GENERATED':report.mode==='hybrid'?'AI + TEMPLATES':'FREE DRAFT MODE'}</span>}
         </div>
         {error&&<p className="error" role="alert"><AlertCircle size={17}/>{error}</p>}
         {!report&&!busy&&<div className="vo-empty">
