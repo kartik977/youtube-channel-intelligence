@@ -207,3 +207,25 @@ function FreeThumbnailBuilder({data}) {
     </section>
   </>;
 }
+
+
+// Keep free browser-rendered thumbnails available unchanged, alongside paid AI art.
+export default function ThumbnailIntelligence({data}) {
+  const [editor,setEditor]=useState('ai');
+  return <div className="thumb-mode-container">
+    <div className="page-heading thumb-page-heading">
+      <div className="eyebrow">CHANNELSCOPE · THUMBNAIL INTELLIGENCE ✦</div>
+      <h1>Make your next thumbnail<span className="accent">.</span></h1>
+      <p>Create custom scene artwork with OpenAI, or design a free thumbnail from templates and your own pictures.</p>
+    </div>
+    <div className="thumb-mode-switch" role="group" aria-label="Thumbnail creator mode">
+      <button type="button" className={editor==='ai'?'selected':''} onClick={()=>setEditor('ai')}>
+        <Sparkles size={17}/> AI Image Generator <span>OpenAI · Paid per image</span>
+      </button>
+      <button type="button" className={editor==='builder'?'selected':''} onClick={()=>setEditor('builder')}>
+        <Layers3 size={17}/> Free Thumbnail Builder <span>Unlimited local exports</span>
+      </button>
+    </div>
+    {editor==='ai'?<AIThumbnailGenerator data={data}/>:<FreeThumbnailBuilder data={data}/>}
+  </div>;
+}
