@@ -148,7 +148,7 @@ export default function VideoOptimizer({data}) {
             <label htmlFor="vo-url"><Link2 size={16}/> Analyze an existing YouTube upload</label>
             <p>Paste a watch, Shorts, livestream or youtu.be link. We'll retrieve its public title and description first.</p>
             <div className="vo-link-row">
-              <input id="vo-url" type="url" maxLength={600} value={videoUrl} disabled={busy||fetching}
+              <input id="vo-url" type="text" inputMode="url" maxLength={600} value={videoUrl} disabled={busy||fetching}
                 onChange={e=>{setVideoUrl(e.target.value);setLoadedVideo(null);setLoadedLink('');setReport(null);}}
                 placeholder="https://www.youtube.com/live/..." />
               <button type="button" onClick={loadLink} disabled={busy||fetching} className="vo-load-btn">
