@@ -10,13 +10,15 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts';
 import { demoData } from './demoData';
+import Advisor from './Advisor';
 import './styles.css';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'videos', label: 'Video Library', icon: Film },
   { id: 'compare', label: 'Compare Channels', icon: GitCompareArrows },
-  { id: 'insights', label: 'Creator Insights', icon: Sparkles }
+  { id: 'insights', label: 'Creator Insights', icon: Sparkles },
+  { id: 'advisor', label: 'AI Creator Advisor', icon: Sparkles }
 ];
 const compact = n => n == null ? '—' : new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 const number = n => n == null ? 'Not available' : Number(n).toLocaleString('en-US');
@@ -247,6 +249,7 @@ function App(){
         {tab==='videos'&&<VideoLibrary data={data}/>}
         {tab==='compare'&&<Comparison key={data.channel.id} data={data} model={model}/>}
         {tab==='insights'&&<Insights data={data} model={model}/>}
+        {tab==='advisor'&&<Advisor key={data.channel.id + ':' + data.fetchedAt} data={data}/>}
         <footer><span>ChannelScope · Independent YouTube analytics project</span><span>{data.source==='demo'?'Fictional example':'Fetched '+day(data.fetchedAt)} · Public data only · Not affiliated with YouTube</span></footer>
       </div>
     </main>
