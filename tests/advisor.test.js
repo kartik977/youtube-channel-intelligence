@@ -78,6 +78,8 @@ test('Optional Groq generation is clearly labeled and validates structured outpu
     assert.match(report.summary,/gaming-focused/);
     assert.equal(outbound.model,'openai/gpt-oss-20b');
     assert.equal(outbound.response_format.type,'json_object');
+    assert.equal(outbound.reasoning_effort,'low');
+    assert.ok(outbound.max_completion_tokens>=3000);
   } finally {globalThis.fetch=original;}
 });
 test('Unavailable or invalid AI response switches to accurately labeled free mode',async()=>{
@@ -98,4 +100,35 @@ test('Workers entrypoint serves advisor POST and rejects GET',async()=>{
   assert.equal((await res.json()).mode,'playbook');
   const forbidden=await worker.fetch(new Request('https://channelscope.example/api/advisor'),env,ctx);
   assert.equal(forbidden.status,405);
+});
+
+test('Provider authentication errors are distinguishable from rate limits without leaking credentials',async()=>{
+  const original=globalThis.fetch;
+  let status=401;
+  globalThis.fetch=async()=>new Response(JSON.stringify({error:{message:'Should not appear in output'}}),{status});
+  try {
+    let res=await onRequestPost({request:request(),env:{GROQ_API_KEY:'fake-secret'}});
+    let report=await res.json();
+    assert.equal(report.mode,'playbook');
+    assert.equal(report.aiErrorCode,'invalid-key');
+    assert.match(report.note,/Groq rejected the AI key/);
+    assert.doesNotMatch(JSON.stringify(report),/fake-secret|Should not appear/);
+    status=400;
+    res=await onRequestPost({request:request(),env:{GROQ_API_KEY:'fake-secret'}});
+    report=await res.json();
+    assert.equal(report.aiErrorCode,'bad-request');
+    assert.match(report.note,/GROQ_MODEL/);
+  } finally {globalThis.fetch=original;}
+});
+
+test('Truncated AI output shows an accurate fallback reason',async()=>{
+  const original=globalThis.fetch;
+  globalThis.fetch=async()=>Response.json({choices:[{finish_reason:'length',message:{content:'{}'}}]});
+  try {
+    const res=await onRequestPost({request:request(),env:{GROQ_API_KEY:'fake'}});
+    const report=await res.json();
+    assert.equal(report.mode,'playbook');
+    assert.equal(report.aiErrorCode,'invalid-output');
+    assert.match(report.note,/did not return a complete/);
+  } finally {globalThis.fetch=original;}
 });
