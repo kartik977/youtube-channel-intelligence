@@ -189,7 +189,7 @@ export function validateGenerated(body,base,brief){
     tip:'Prefer specific, accurate hashtags. These suggestions are not rankings and cannot guarantee views.',
     note:complete?
       'Groq-generated publishing draft based on your brief'+(brief.sourceVideo?' and public YouTube metadata':'')+'. Verify its accuracy against the video.':
-      'AI + TEMPLATES: unsupported or missing AI claims were replaced with grounded draft text. Check every suggestion before publishing.'
+      'AI + TEMPLATES: AI-assisted draft; unsupported or missing AI claims were replaced with grounded template text. Check every suggestion before publishing.'
   };
 }
 async function generateGroq(brief,backup,apiKey,model){
