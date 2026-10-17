@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Image as ImageIcon, WandSparkles, Sparkles, Download, Upload, Trash2, AlertCircle, RefreshCw, Check, Info, Layers3, Video, Radio, Clapperboard, Palette } from 'lucide-react';
 import { renderThumbnail, thumbnailDimensions, THUMBNAIL_STYLES } from './thumbnailRenderer';
 import './thumbnail.css';
+import AIThumbnailGenerator from './AIThumbnailGenerator';
 
 const layouts = [
   {name:'Hero impact',description:'Bold text + subject focus'},
@@ -38,7 +39,7 @@ function handleImageFile(event,setFile,setError) {
   setError('');
   setFile(file);
 }
-export default function ThumbnailIntelligence({data}) {
+function FreeThumbnailBuilder({data}) {
   const [kind,setKind]=useState('video');
   const [topic,setTopic]=useState('');
   const [description,setDescription]=useState('');
