@@ -114,3 +114,25 @@ Groq's free-tier rate limits can change. If its API is unavailable or rate-limit
 ### Local checks
 
 Run **npm test**, then **npm run build**. For local backend testing, configure a git-ignored .dev.vars file based on .dev.vars.example and run **npm run dev:full**. The new POST /api/advisor route operates alongside the unchanged GET /api/channel route.
+
+
+## Thumbnail Intelligence — free thumbnail builder
+
+Open **Thumbnail Intelligence** in the sidebar. Choose the content type:
+
+- **Video** or **Live:** export a 1280×720 PNG (16:9). Live artwork automatically gets a LIVE NOW badge.
+- **Short:** export vertical 1080×1920 poster artwork (9:16). **Important:** YouTube Shorts normally use a selected video frame for the Shorts thumbnail; directly uploading a custom PNG as the YouTube Shorts cover may not be supported. Use this design as a reference, an edited video frame, or promotional artwork.
+
+Enter your topic, optional description and style (gaming, sports, dramatic, energetic, tech or minimal). The studio can optionally add your **own** PNG/JPEG/WebP gameplay screenshot, photo or channel logo (up to 8 MB each). Images remain in your browser; the server never receives uploaded pictures.
+
+1. Select **Generate three concepts** for three topic-specific headline, supporting-line and composition suggestions.
+2. Switch between **Hero impact**, **Split story** and **Cinematic** concepts. Each uses a distinct canvas composition.
+3. Adjust the headline, supporting text, style or uploaded images; the full-resolution preview updates immediately.
+4. Select **Download full-resolution PNG**. The downloaded PNG is composed in the browser with the Canvas API—no paid image generation service, watermark or subscription needed.
+
+**Generative text suggestions:** If the Worker has an active **GROQ_API_KEY** (the same optional secret used by AI Creator Advisor), it asks Groq for creative copy and reasons to test each concept. No new API key is needed if that secret already works. Otherwise the page uses **FREE GUIDED CONCEPTS**, which work without any AI provider. On Groq failures, it shows a safe explanation and uses those free concepts.
+
+**Clarification:** This makes real, downloadable designed thumbnails from shapes, gradients, text and optional user-supplied photos; it does **not** generate new photorealistic images or claim to estimate actual YouTube click-through rate. Creator screenshots and logos remain local. Public channel video titles (up to five) and your topic/description can be sent to Groq to inform concept text when Groq mode is enabled.
+
+**Deploy:** GitHub merge to main triggers the existing Cloudflare Worker build, when GitHub integration is configured. The Worker routes **POST /api/thumbnail** alongside unchanged **GET /api/channel** and **POST /api/advisor**. For manual deployment, run npm install, npm test, npm run build and npx wrangler deploy. Existing YOUTUBE_API_KEY and GROQ_API_KEY secrets should remain attached.
+
