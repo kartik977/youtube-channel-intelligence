@@ -169,3 +169,12 @@ AI Video Optimizer keeps useful Groq suggestions if the model returns valid but 
 When a loaded YouTube video's description is composed mainly of hashtags or links, ChannelScope visibly warns that there isn't enough factual detail for specific gameplay advice. The fallback description acknowledges missing details rather than copying a wall of hashtags or inventing events. AI prompts explicitly prohibit claims based on footage, transcripts, or private analytics not supplied by the creator.
 
 Only hashtags supported by the video's supplied topic, description, or format should be carried over from a model response. Unrelated tags such as claimed tactics for an otherwise undescribed livestream are excluded. Creators should always verify drafts before uploading.
+
+
+### Video Optimizer: title accuracy and specific-hashtag prioritization
+
+The publishing pack now **prioritizes game/series/platform hashtags** before one matching niche/format hashtag, where available. For a Call of Duty Modern Warfare livestream, it prefers \`#CallOfDuty\`, \`#ModernWarfare\`, and \`#GamingLive\` over generic \`#Gaming\` or \`#LiveStream\`; more broadly relevant suggestions remain optional. These are *relevance heuristics*, never verified trend, traffic, or ranking information.
+
+Gaming titles avoid "explained", "strategy", "breakdown", "guide", and similar promises unless the video brief actually describes a tutorial or explanation. Legitimate tutorials still receive educational titles. A server-side draft guard also rejects selected unsupported descriptions and spoken hooks (e.g., invented weapon loadouts or gameplay mechanics), falling back to wording grounded in the supplied title and creator-entered description. When a draft has been corrected this way, it is labeled **AI + TEMPLATES**, not fully AI-generated.
+
+This guard is a **conservative heuristic, not fact verification**: it cannot watch the footage or prove the video title/description truthful. Review all generated copy before publishing, especially for sensitive topics or unknown video content.

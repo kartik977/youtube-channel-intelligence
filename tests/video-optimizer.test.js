@@ -220,3 +220,81 @@ test('Unparseable Groq output still falls back safely',async()=>{
     assert.match(payload.note,/truncated/);
   }finally{globalThis.fetch=previous;}
 });
+
+
+test('Gaming livestream hashtag priorities choose franchise, series and niche before generic format tags',()=>{
+  const input=normalizeBrief({
+    kind:'live',tone:'clear',topic:'Call of Duty–Modern Warfare 4 – Part 1',
+    description:'In part one, there is a bombing of Seoul from North Korea at the start of the game.',
+    channelName:'Daywalker_OP',
+    sourceVideo:{id:'inPa2Ve-vgI',channelTitle:'Daywalker_OP',liveStatus:'ended'}
+  });
+  const pack=freeVideoPack(input);
+  assert.deepEqual(pack.hashtags.slice(0,3).map(x=>x.tag),[
+    '#CallOfDuty','#ModernWarfare','#GamingLive'
+  ]);
+  // Don't invent #MW4 when the brief only says Modern Warfare 4.
+  assert.ok(!pack.hashtags.some(x=>x.tag==='#MW4'));
+  assert.equal(pack.hashtags.filter(x=>x.category==='primary').length,3);
+  assert.ok(pack.titleOptions.some(x=>/Live Gameplay|LIVE:/.test(x)));
+  assert.ok(pack.titleOptions.every(x=>!/Explained|Breakdown|Strategy/i.test(x)));
+});
+
+test('Unsupported gameplay tutorials, instructional titles and invented mechanics are replaced, not labeled fully AI',()=>{
+  const input=normalizeBrief({
+    kind:'live',tone:'clear',topic:'Call of Duty–Modern Warfare 4 – Part 1',
+    description:'Part one covers the bombing of Seoul from North Korea at the start of the game.',
+    channelName:'Daywalker_OP',
+    sourceVideo:{id:'inPa2Ve-vgI',channelTitle:'Daywalker_OP',liveStatus:'ended'}
+  });
+  const suggested={
+    titles:[
+      'Call of Duty MW4: Seoul Bombing Explained',
+      'Modern Warfare 4 Part 1 – Seoul Raid Breakdown',
+      'Call of Duty Modern Warfare 4 – Part 1 | Live Gameplay'
+    ],
+    description:'The game starts with Seoul being bombed. Watch Daywalker_OP break down weapon loadouts, tactics and gameplay mechanics.',
+    hooks:['Let me show you the best weapon loadouts and strategy.', 'Welcome to Modern Warfare 4 Part 1.'],
+    hashtags:[
+      {tag:'#CallOfDuty',reason:'Featured game'},
+      {tag:'#Gaming',reason:'Broad niche'},
+      {tag:'#LiveStream',reason:'Live format'},
+      {tag:'#ModernWarfare',reason:'Game series'},
+      {tag:'#GamingLive',reason:'Gaming live niche'}
+    ]
+  };
+  const result=validateGenerated(suggested,freeVideoPack(input),input);
+  assert.equal(result.mode,'hybrid');
+  assert.ok(result.titleOptions.every(x=>!/Explained|Breakdown|Strategy/i.test(x)));
+  assert.ok(result.titleOptions.some(x=>/Live Gameplay/i.test(x)));
+  assert.doesNotMatch(result.description,/weapon loadouts|tactics|mechanics/i);
+  assert.doesNotMatch(result.hooks.join(' '),/loadouts|strategy/i);
+  assert.deepEqual(result.hashtags.slice(0,3).map(x=>x.tag),
+    ['#CallOfDuty','#ModernWarfare','#GamingLive']);
+  assert.match(result.note,/unsupported or missing AI claims/);
+});
+
+test('Explicit educational brief can retain a genuine tutorial title and explanatory description',()=>{
+  const input=normalizeBrief({
+    kind:'video',tone:'educational',topic:'Java Spring Boot OAuth2 Tutorial',
+    description:'Teaching step-by-step how to add authorization to a Spring Boot REST API.'
+  });
+  const generated={
+    titles:[
+      'Spring Boot OAuth2 Tutorial for Beginners',
+      'Spring Boot Authorization Guide',
+      'How to Add OAuth2 in Spring Boot'
+    ],
+    description:'This Spring Boot OAuth2 tutorial teaches step-by-step authorization in a REST API.',
+    hooks:['Today we will learn Spring Boot OAuth2 authorization.','Follow along with this tutorial.'],
+    hashtags:[
+      {tag:'#SpringBoot',reason:'Framework covered'},
+      {tag:'#Java',reason:'Language mentioned'},
+      {tag:'#TechTips',reason:'Educational tech format'}
+    ]
+  };
+  const report=validateGenerated(generated,freeVideoPack(input),input);
+  assert.ok(report.titleOptions.some(x=>/tutorial/i.test(x)));
+  assert.match(report.description,/step-by-step/);
+  assert.ok(report.hashtags.some(x=>x.tag==='#SpringBoot'));
+});
