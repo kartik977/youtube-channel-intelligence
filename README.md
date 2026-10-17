@@ -142,3 +142,21 @@ Official guidance:
 No additional API key is required: the optimizer uses the existing encrypted \`GROQ_API_KEY\` on the Cloudflare Worker to draft tailored suggestions, within its free-tier limits. On a missing key or API failure, it offers a clearly labeled **FREE DRAFT MODE** with conservative, topic-based fallback tags and titles, without claiming generative AI. The backend route is **POST /api/video-optimizer**; it does not modify existing \`/api/channel\` or \`/api/advisor\` behavior.
 
 Use \`npm test\` and \`npm run build\` to validate changes; GitHub Actions runs both automatically. There are no paid image-generation endpoints in this project.
+
+
+### YouTube URL analysis (Video Optimizer)
+
+You can now paste a **public YouTube watch, live, Shorts, embed or youtu.be link** directly into **AI Video Optimizer → Analyze an existing YouTube upload**. Choose **Load video** to fill the editable title, description, format, and original-video preview. Then select **Optimize my video**. You can also paste a URL directly into the **Video title or topic** field and click Optimize; ChannelScope loads the public video metadata before using the AI.
+
+Supported URLs include:
+- https://www.youtube.com/watch?v=inPa2Ve-vgI
+- https://youtu.be/inPa2Ve-vgI
+- https://www.youtube.com/live/inPa2Ve-vgI?si=example
+- https://www.youtube.com/shorts/inPa2Ve-vgI
+- Bare 11-character IDs in the dedicated URL input
+
+**Data sources and limitations:** Only the YouTube Data API v3 \`videos.list\` endpoint is called with the ID extracted from the link; ChannelScope does not fetch arbitrary URLs or scrape/transcribe the video. Public metadata includes the video title, description, channel name, publication date and livestream information where available. It does **not** include the footage, transcript, watch-time, retention, impressions or private analytics. The description is capped to 650 characters for the optimizer, and you can edit the prefilled details before generating suggestions. Livestream format is inferred from \`liveStreamingDetails\` / \`liveBroadcastContent\`; Shorts are inferred from explicit \`/shorts/\` links only (the regular API does not reliably identify Shorts). Creators can always change the format manually.
+
+This uses the existing \`YOUTUBE_API_KEY\`, one inexpensive \`videos.list\` lookup for uncached videos, and Cloudflare edge caching for 15 minutes where supported. No extra paid provider or API key is required. The backend is \`GET /api/video?input=<YouTube URL>\`. If a video is private/deleted/unavailable, the API key or YouTube quota is unavailable, or the URL is not recognized, the editor shows an error and remains usable for manual video descriptions.
+
+AI suggestion text is deliberately constrained to the supplied public metadata and creator edits. It should not claim to have watched videos or invent unlisted gameplay outcomes, tutorials, tactics or channel names. Treat generated text as **draft publishing copy that the creator must verify**, not a substitute for watching the content.
