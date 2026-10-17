@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import {Sparkles, Copy, Check, Search, Hash, Lightbulb, FileText, Clapperboard, Radio, Video, ArrowRight, AlertCircle, Info, RefreshCw, ListChecks, PenTool} from 'lucide-react';
+import {Sparkles, Copy, Check, Hash, Lightbulb, FileText, Clapperboard, Radio, Video, AlertCircle, Info, RefreshCw, ListChecks, PenTool, Link2, ExternalLink} from 'lucide-react';
 import './video-optimizer.css';
 
 const formats=[
@@ -14,6 +14,15 @@ const tones=[
   {value:'cinematic',label:'Cinematic'}
 ];
 const copyText=(value)=>navigator.clipboard.writeText(value);
+const seemsLink=value=>/^(?:https?:\/\/|(?:www\.|m\.|music\.)?youtube\.com\/|(?:www\.)?youtu\.be\/)/i.test(value.trim());
+async function findVideo(url){
+  const res=await fetch('/api/video?input='+encodeURIComponent(url.trim()));
+  if(!res.headers.get('content-type')?.includes('application/json'))throw new Error('YouTube video lookup is not deployed yet.');
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error||'Could not load this YouTube video.');
+  if(!data.id||!data.title)throw new Error('Video metadata was incomplete. Try a public link.');
+  return data;
+}
 function CopyButton({content,label='Copy',onError}) {
   const [copied,setCopied]=useState(false);
   async function copy() {
@@ -32,20 +41,59 @@ export default function VideoOptimizer({data}) {
   const [description,setDescription]=useState('');
   const [audience,setAudience]=useState('');
   const [tone,setTone]=useState('clear');
+  const [videoUrl,setVideoUrl]=useState('');
+  const [loadedVideo,setLoadedVideo]=useState(null);
+  const [loadedLink,setLoadedLink]=useState('');
+  const [fetching,setFetching]=useState(false);
   const [report,setReport]=useState(null);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [generatedFor,setGeneratedFor]=useState('');
   const recent=(data?.videos||[]).slice(0,10);
+  function applyVideo(metadata,originalLink) {
+    setTopic(metadata.title);
+    setDescription(metadata.description||'');
+    setKind(metadata.kind);
+    setLoadedVideo(metadata);
+    setLoadedLink(originalLink.trim());
+    setVideoUrl(originalLink.trim());
+    setReport(null);
+  }
+  async function loadLink() {
+    if(fetching||busy)return;
+    setError('');setFetching(true);
+    try {
+      const link=videoUrl.trim()|| (seemsLink(topic)?topic.trim():'');
+      if(!link)throw new Error('Paste a public YouTube video, Shorts, or livestream link first.');
+      const metadata=await findVideo(link);
+      applyVideo(metadata,link);
+    }catch(e){setError(e.message||'Could not load video.');}
+    finally{setFetching(false);}
+  }
   async function optimize(e) {
     e.preventDefault();
+    if(busy||fetching)return;
     setError('');setBusy(true);
     try {
+      let effectiveTopic=topic.trim(),effectiveDescription=description.trim(),effectiveKind=kind;
+      let videoContext=loadedVideo;
+      const linkInTopic=seemsLink(effectiveTopic);
+      const requestedUrl=linkInTopic?effectiveTopic:videoUrl.trim();
+      // A YouTube URL in the topic field must never be passed as a raw title.
+      if(requestedUrl&&(linkInTopic||requestedUrl!==loadedLink)){
+        const metadata=await findVideo(requestedUrl);
+        videoContext=metadata;effectiveTopic=metadata.title;
+        effectiveDescription=metadata.description||'';
+        effectiveKind=metadata.kind;
+        applyVideo(metadata,requestedUrl);
+      }
+      if(!effectiveTopic||seemsLink(effectiveTopic))throw new Error('Enter a topic or load a public YouTube video link.');
       const response=await fetch('/api/video-optimizer',{
         method:'POST',headers:{'content-type':'application/json'},
         body:JSON.stringify({
-          topic:topic.trim(),description:description.trim(),kind,tone,audience:audience.trim(),
-          channelName:data?.channel?.title||'',
+          topic:effectiveTopic,description:effectiveDescription,kind:effectiveKind,tone,audience:audience.trim(),
+          channelName:videoContext?.channelTitle||(data?.source==='youtube'?data?.channel?.title:'')||'',
+          sourceVideo:videoContext?{id:videoContext.id,channelTitle:videoContext.channelTitle,liveStatus:videoContext.liveStatus}:null,
           recentTitles:recent.slice(0,5).map(v=>v.title)
         })
       });
@@ -55,7 +103,7 @@ export default function VideoOptimizer({data}) {
       const body=await response.json();
       if(!response.ok)throw new Error(body.error||'Could not prepare this publishing pack.');
       if(!Array.isArray(body.hashtags)||!Array.isArray(body.titleOptions))throw new Error('Incomplete publishing pack received.');
-      setReport(body);setGeneratedFor(topic.trim());
+      setReport(body);setGeneratedFor(effectiveTopic);
     }catch(e){setError(e.message||'Something went wrong.');}
     finally{setBusy(false);}
   }
@@ -96,6 +144,28 @@ export default function VideoOptimizer({data}) {
       <section className="vo-form-panel">
         <h2><PenTool size={20}/> Your video brief</h2>
         <form onSubmit={optimize}>
+          <div className="vo-link-section">
+            <label htmlFor="vo-url"><Link2 size={16}/> Analyze an existing YouTube upload</label>
+            <p>Paste a watch, Shorts, livestream or youtu.be link. We'll retrieve its public title and description first.</p>
+            <div className="vo-link-row">
+              <input id="vo-url" type="url" maxLength={600} value={videoUrl} disabled={busy||fetching}
+                onChange={e=>{setVideoUrl(e.target.value);setLoadedVideo(null);setLoadedLink('');setReport(null);}}
+                placeholder="https://www.youtube.com/live/..." />
+              <button type="button" onClick={loadLink} disabled={busy||fetching} className="vo-load-btn">
+                {fetching?<RefreshCw size={15} className="spin"/>:<Link2 size={15}/>}
+                {fetching?'Loading…':'Load video'}
+              </button>
+            </div>
+            {loadedVideo && loadedLink===videoUrl.trim() && <div className="vo-loaded-video">
+              <img src={loadedVideo.thumbnail} alt="" loading="lazy"/>
+              <div><strong>{loadedVideo.title}</strong>
+                <span>{loadedVideo.channelTitle||'YouTube channel'} · {loadedVideo.kind==='live'?'Livestream':loadedVideo.kind==='short'?'Shorts link':'Video'}{loadedVideo.liveStatus==='live'?' · LIVE':loadedVideo.liveStatus==='upcoming'?' · UPCOMING':''}</span>
+                <small>{loadedVideo.descriptionTruncated?'Long description shortened for editing. ':''}{loadedVideo.note}</small>
+              </div>
+              <a href={loadedVideo.url} target="_blank" rel="noopener noreferrer" aria-label="Open original video"><ExternalLink size={16}/></a>
+            </div>}
+          </div>
+          <p className="vo-or">OR CREATE A BRIEF FOR A FUTURE UPLOAD</p>
           <label>Publishing format</label>
           <div className="vo-kinds">
             {formats.map(f=><button type="button" key={f.key} className={kind===f.key?'selected':''} onClick={()=>setKind(f.key)}>
@@ -103,13 +173,14 @@ export default function VideoOptimizer({data}) {
             </button>)}
           </div>
           <label htmlFor="vo-topic">Video title or topic <span>Required</span></label>
-          <input id="vo-topic" required minLength={3} maxLength={125} value={topic} onChange={e=>setTopic(e.target.value)}
-            placeholder="e.g. Cricket 26 last over comeback on PS5"/>
+          <input id="vo-topic" required={!videoUrl.trim()} minLength={3} maxLength={600} value={topic} onChange={e=>setTopic(e.target.value)}
+            placeholder="e.g. Cricket 26 last over comeback on PS5 (or paste a YouTube link)"/>
+          <p className="vo-topic-tip">You can also paste a YouTube URL here and select Optimize; we will load the video automatically.</p>
           {recent.length>0&&<div className="vo-recents">
             <label htmlFor="vo-recent">Or start from an existing upload</label>
             <select id="vo-recent" defaultValue="" onChange={e=>{
               const row=recent.find(v=>v.id===e.target.value);
-              if(row){setTopic(row.title);setDescription((row.description||'').slice(0,650));}
+              if(row){setTopic(row.title);setDescription((row.description||'').slice(0,650));setVideoUrl('');setLoadedVideo(null);setLoadedLink('');setReport(null);}
             }}>
               <option value="">Choose a recent video (optional)</option>
               {recent.map(v=><option key={v.id} value={v.id}>{v.title}</option>)}
@@ -126,9 +197,9 @@ export default function VideoOptimizer({data}) {
             {tones.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
           <p className="vo-hint"><Info size={14}/> Using your current channel's public upload titles can help tailor the writing. No private YouTube Studio data is used.</p>
-          <button className="primary-btn vo-generate" disabled={busy}>
+          <button className="primary-btn vo-generate" disabled={busy||fetching}>
             {busy?<RefreshCw size={16} className="spin"/>:<Sparkles size={16}/>}
-            {busy?'Creating publishing pack…':report?'Regenerate optimization':'Optimize my video'}
+            {busy?'Loading metadata and creating suggestions…':report?'Regenerate optimization':'Optimize my video'}
           </button>
         </form>
       </section>
@@ -147,6 +218,7 @@ export default function VideoOptimizer({data}) {
         {busy&&<div className="vo-empty" role="status"><RefreshCw size={32} className="spin"/><h3>Preparing your publishing pack</h3><p>Reviewing your topic, matching keywords and drafting hashtags.</p></div>}
         {report&&<div className="vo-results" aria-live="polite">
           <p className="vo-generated-for">Prepared for <strong>{generatedFor}</strong></p>
+          {loadedVideo&&<p className="vo-metadata-note"><Info size={15}/> Based on public title and description, not footage, captions, or private analytics. Review every suggestion before publishing.</p>}
           <section className="vo-output">
             <div className="vo-section-title"><h3><Clapperboard size={17}/> Three title options</h3></div>
             {report.titleOptions.map((title,i)=><div className="vo-title-choice" key={i}>
