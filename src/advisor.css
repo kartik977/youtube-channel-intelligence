@@ -1,0 +1,60 @@
+/* ChannelScope Creator Advisor extension — isolated from existing dashboard styles */
+.advisor-heading { margin-bottom:25px }
+.advisor-hero { display:flex;align-items:center;gap:23px;flex-wrap:wrap;border:1px solid #674155;border-radius:18px;background:radial-gradient(ellipse at 85% 10%,#73384e88,transparent 52%),linear-gradient(120deg,#242032,#191c2a);padding:30px;margin-bottom:26px }
+.advisor-orb { flex:0 0 70px;width:70px;height:70px;border-radius:21px;background:linear-gradient(135deg,#ff6880,#a45bda);color:#fff;display:grid;place-items:center;box-shadow:0 12px 39px #ef578444 }
+.advisor-hero-copy { flex:1 1 300px;min-width:0 }
+.advisor-kicker {font-size:10px;letter-spacing:1.8px;color:#ffa1b2;font-weight:800}
+.advisor-hero-copy h2 {font-size:clamp(20px,2.2vw,27px);letter-spacing:-.8px;margin:11px 0}
+.advisor-hero-copy p {font-size:12px;line-height:1.75;color:#b8b7c9;margin:0;max-width:640px}
+.advisor-hero-copy p strong {color:#fff}
+.advisor-micro {display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.advisor-micro span {font-size:10px;color:#ccc4d3;display:inline-flex;align-items:center;gap:5px}
+.advisor-micro svg {color:#79e1b7}
+.advisor-generate {min-height:47px;padding:13px 18px}
+.advisor-preview,.advisor-ideas {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.advisor-preview-card {padding:24px;border:1px solid #333747;border-radius:15px;background:#1b1e2c;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.advisor-preview-card svg {color:#ff8ca1}
+.advisor-preview-card strong {font-size:15px}
+.advisor-preview-card p {font-size:12px;line-height:1.75;color:#a7adbe;margin:0}
+.advisor-loading {border:1px dashed #61495e;border-radius:15px;padding:65px 20px;text-align:center;background:#1b1b29}
+.advisor-loading svg {color:#fa859c}
+.advisor-loading h3 {font-size:18px;margin:14px 0 8px}
+.advisor-loading p {font-size:12px;color:#aeb2c2}
+.advisor-report {display:flex;flex-direction:column;gap:18px}
+.advisor-report-header {display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.advisor-report-header h2 {font-size:23px;line-height:1.3;letter-spacing:-.6px;margin:10px 0 0}
+.advisor-mode {font-weight:800;font-size:9px;letter-spacing:1.2px;border:1px solid #665464;padding:7px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;color:#e6b9cc;background:#392a3f}
+.advisor-mode.ai-mode {border-color:#4e9b7d;color:#8aeac0;background:#183b30}
+.advisor-summary {font-size:13px;line-height:1.8;color:#d9d9e5;padding:20px 23px;background:#222234;border:1px solid #414056;border-radius:13px;margin:0}
+.advisor-section-label {display:flex;align-items:center;gap:9px;font-size:10px;letter-spacing:1.5px;font-weight:800;color:#fb96a9;margin-top:12px}
+.advisor-strengths {display:grid;gap:9px}
+.advisor-strength {display:flex;align-items:flex-start;gap:17px;background:#1b1d2b;border:1px solid #343548;border-radius:12px;padding:17px}
+.advisor-strength span {color:#fa7d99;font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800}
+.advisor-strength p {font-size:12px;line-height:1.7;color:#c8cada;margin:0}
+.advisor-priorities {display:grid;gap:15px}
+.advisor-priority {display:flex;gap:18px;background:#1b1e2d;border:1px solid #36364b;border-radius:15px;padding:24px}
+.advisor-priority-num {font-size:27px;color:#f87998;font-family:'Space Grotesk',sans-serif;font-weight:800;line-height:1}
+.advisor-priority>div {flex:1;min-width:0}
+.advisor-priority h3 {font-size:17px;margin:0 0 10px}
+.advisor-reason {font-size:12px;line-height:1.7;color:#aeb2c4;margin:0 0 15px}
+.advisor-action {background:#2a263a;border-left:3px solid #fc708f;border-radius:8px;padding:14px 17px;font-size:12px;color:#e5e1ed;line-height:1.7}
+.advisor-action strong {display:flex;align-items:center;gap:6px;font-size:10px;color:#ffa4b7;letter-spacing:.8px;margin-bottom:4px}
+.advisor-measure {font-size:11px;line-height:1.6;color:#afb7c9;margin-top:12px}
+.advisor-measure strong {font-size:9px;letter-spacing:1px;color:#83e2d4;margin-right:11px}
+.advisor-idea {background:#201d30;border:1px solid #41364c;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.advisor-idea-head {display:flex;justify-content:space-between;align-items:center;color:#ffa1b2;font-weight:800;font-size:10px;letter-spacing:1px}
+.advisor-idea h3 {font-size:15px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.advisor-idea p {font-size:11px;color:#bfc0d0;line-height:1.75;margin:0}
+.advisor-idea p strong {color:#ffd1db;display:block;font-size:9px;letter-spacing:1px;margin-bottom:4px}
+.advisor-idea .advisor-idea-why {color:#a7aec0;border-top:1px solid #444052;padding-top:12px;margin-top:auto}
+.advisor-disclaimer {margin:2px 0 0!important}
+@media(max-width:1150px) { .advisor-ideas,.advisor-preview {grid-template-columns:1fr 1fr} }
+@media(max-width:680px) {
+ .advisor-hero {padding:20px;gap:16px}
+ .advisor-orb {flex-basis:55px;width:55px;height:55px;border-radius:15px}
+ .advisor-generate {width:100%}
+ .advisor-ideas,.advisor-preview {grid-template-columns:1fr}
+ .advisor-priority {padding:17px;gap:13px}
+ .advisor-priority-num {font-size:21px}
+ .advisor-report-header h2 {font-size:19px}
+}
