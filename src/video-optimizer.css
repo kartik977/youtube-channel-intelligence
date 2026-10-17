@@ -98,3 +98,7 @@
 .vo-metadata-note{display:flex;gap:7px;align-items:flex-start;border:1px solid #4b4e65;background:#282a3e;border-radius:9px;padding:12px;color:#c8c8d8;font-size:10px;line-height:1.65;margin:0}
 .vo-metadata-note svg{flex-shrink:0;margin-top:1px;color:#cba3e1}
 @media(max-width:540px){.vo-link-row{flex-direction:column}.vo-load-btn{min-height:42px}.vo-loaded-video img{width:84px;height:48px}}
+
+.vo-mode.vo-hybrid{background:#352d43;border-color:#7963a7;color:#ebd2ff}
+.vo-sparse-warning{display:flex;align-items:flex-start;gap:9px;border:1px solid #886441;background:#32291f;color:#e6c8a5;border-radius:10px;padding:13px;font-size:11px;line-height:1.7;margin:10px 0 0}
+.vo-sparse-warning svg{flex-shrink:0;margin-top:1px}
