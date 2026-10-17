@@ -89,3 +89,28 @@ vite.config.js            Vite setup
 ```
 
 Built as an independent hobby/portfolio project. Not affiliated with or endorsed by YouTube or Google.
+
+
+## AI Creator Advisor
+
+Open **AI Creator Advisor** from the navigation after analyzing a YouTube channel, then choose **Generate my plan**. The report provides observations grounded in a recent public-video sample, three prioritized measurable content experiments and three video ideas with hooks. Use **Copy plan** to copy the report.
+
+### Free mode (no additional secrets)
+
+**This feature works immediately using the existing YouTube API integration.** Without a generative AI key, the endpoint computes a transparent, deterministic report and labels it **FREE DATA-DRIVEN MODE**. It does not claim to be AI-generated.
+
+### Optional generative AI (Groq free plan)
+
+1. Create a free plan/API key at https://console.groq.com/keys. Do not opt into a paid plan.
+2. In Cloudflare, open Workers & Pages → channelscope → Settings → Variables and Secrets.
+3. Add an encrypted **Secret** named **GROQ_API_KEY** with your Groq key. Keep your **YOUTUBE_API_KEY** unchanged. Apply/deploy the secret change.
+4. Deploy the latest GitHub main branch if necessary. In the Advisor, select Generate my plan. A successful generative report displays **AI-GENERATED**.
+5. Optionally set the Cloudflare variable **GROQ_MODEL** to a supported model ID; the default is **openai/gpt-oss-20b**.
+
+Groq's free-tier rate limits can change. If its API is unavailable or rate-limited, the built-in data-driven report takes over and says so. A paid AI provider is never required to use ChannelScope.
+
+**Privacy and limitations:** The browser sends only currently analyzed public channel information (up to 30 public videos) to the Worker. When optional AI is enabled, public channel metadata and a subset of those videos are passed to Groq. No private YouTube Studio data is accessed. Public video views are snapshots, affected by video age; neither mode can see retention, impressions, click-through rate, revenue, or historical subscriber growth. The plan consists of experiments, not guarantees.
+
+### Local checks
+
+Run **npm test**, then **npm run build**. For local backend testing, configure a git-ignored .dev.vars file based on .dev.vars.example and run **npm run dev:full**. The new POST /api/advisor route operates alongside the unchanged GET /api/channel route.
