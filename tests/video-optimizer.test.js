@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {normalizeBrief,freeVideoPack,validateGenerated,onRequestPost} from '../functions/api/video-optimizer.js';
+import {normalizeBrief,freeVideoPack,validateGenerated,meaningfulDetails,onRequestPost} from '../functions/api/video-optimizer.js';
 import worker from '../worker/index.js';
 
 const brief={
@@ -130,4 +130,93 @@ test('Worker correctly routes video optimizer and keeps existing endpoints intac
   assert.equal(res.status,503);
   res=await worker.fetch(new Request('https://channelscope.example/api/advisor',{method:'POST',headers:{'content-type':'application/json'},body:'{"source":"demo","channel":{"id":"a","title":"Demo"},"videos":[]}' }),env,ctx);
   assert.equal(res.status,200);
+});
+
+
+test('Hashtag-only descriptions are not passed off as detailed gameplay knowledge',()=>{
+  const sparse=normalizeBrief({
+    kind:'live',tone:'clear',topic:'Call of Duty–Modern Warfare 4 – Part 1',
+    description:'#callofduty #mw4 #ghost #price #ps5 #callofdutymodernwarfare',
+    channelName:'Daywalker_OP',sourceVideo:{id:'inPa2Ve-vgI',channelTitle:'Daywalker_OP',liveStatus:'ended'}
+  });
+  assert.equal(meaningfulDetails(sparse.description),'');
+  assert.equal(meaningfulDetails('Real footage of a Paris mission with my friend.'),'Real footage of a Paris mission with my friend.');
+  const fallback=freeVideoPack(sparse);
+  assert.equal(fallback.mode,'free');
+  assert.doesNotMatch(fallback.description,/#ghost|#price/i);
+  assert.match(fallback.description,/Add verified details before publishing/);
+  assert.match(fallback.note,/public metadata/);
+});
+
+test('Partial Groq JSON preserves usable content, fills missing fields, and labels hybrid',()=>{
+  const answer={
+    titles:['Cricket 26: Watch the Final Over'],
+    hooks:['One over left in this Cricket 26 match.'],
+    hashtags:[{tag:'#Cricket26',reason:'Specific featured game'}]
+    // Missing description, second hook, and other titles/tags
+  };
+  const result=validateGenerated(answer,freeVideoPack(brief),brief);
+  assert.equal(result.mode,'hybrid');
+  assert.equal(result.titleOptions[0],answer.titles[0]);
+  assert.equal(result.titleOptions.length,3);
+  assert.equal(result.hooks[0],answer.hooks[0]);
+  assert.equal(result.hooks.length,2);
+  assert.ok(result.description.length>=20);
+  assert.ok(result.hashtags.some(t=>t.tag==='#Cricket26'));
+  assert.match(result.note,/AI-assisted draft/);
+});
+
+test('Unknown or irrelevant AI hashtags are rejected in favor of topic-based alternatives',()=>{
+  const sparse={kind:'live',tone:'clear',topic:'Call of Duty Modern Warfare 4 — Part 1',
+    description:'#callofduty #mw4',channelName:'Daywalker_OP'};
+  const response={
+    titles:['Call of Duty: Modern Warfare 4 Part 1 — Live','Modern Warfare 4 Live Stream','Call of Duty Modern Warfare 4: Part 1'],
+    description:'A Call of Duty Modern Warfare 4 livestream from Daywalker_OP. Part 1 of the series.',
+    hooks:['Welcome to Modern Warfare 4 Part 1.','We are getting started with part one.'],
+    hashtags:[
+      {tag:'#CallOfDuty',reason:'Named franchise'},
+      {tag:'#MW4',reason:'Named in public description'},
+      {tag:'#GamingLive',reason:'Livestream format'},
+      {tag:'#BattlefieldStrategy',reason:'Invented tactics'},
+      {tag:'#GameTips',reason:'Tips not in metadata'}
+    ]
+  };
+  const result=validateGenerated(response,freeVideoPack(sparse),sparse);
+  const tags=result.hashtags.map(x=>x.tag.toLowerCase());
+  assert.equal(result.mode,'ai');
+  assert.ok(tags.includes('#callofduty'));
+  assert.ok(tags.includes('#mw4'));
+  assert.ok(tags.includes('#gaminglive'));
+  assert.ok(!tags.includes('#battlefieldstrategy'));
+  assert.ok(!tags.includes('#gametips'));
+});
+
+test('Length-limited but valid Groq JSON is salvaged without a complete fallback',async()=>{
+  const previous=globalThis.fetch;
+  globalThis.fetch=async()=>Response.json({choices:[{
+    finish_reason:'length',
+    message:{content:JSON.stringify({
+      titles:['Cricket 26: Last Over on PS5'],description:'Gameplay from the final over of a Cricket 26 match on PS5.'
+    })}
+  }]});
+  try{
+    const response=await onRequestPost({request:makeReq(),env:{GROQ_API_KEY:'private-test-key'}});
+    const payload=await response.json();
+    assert.equal(payload.mode,'hybrid');
+    assert.equal(payload.titleOptions[0],'Cricket 26: Last Over on PS5');
+    assert.match(payload.note,/AI-assisted/);
+    assert.doesNotMatch(JSON.stringify(payload),/private-test-key/);
+  }finally{globalThis.fetch=previous;}
+});
+
+test('Unparseable Groq output still falls back safely',async()=>{
+  const previous=globalThis.fetch;
+  globalThis.fetch=async()=>Response.json({choices:[{finish_reason:'length',message:{content:'{"titles":["Incomplete"'}}]});
+  try{
+    const response=await onRequestPost({request:makeReq(),env:{GROQ_API_KEY:'private-test-key'}});
+    const payload=await response.json();
+    assert.equal(payload.mode,'free');
+    assert.equal(payload.aiErrorCode,'incomplete');
+    assert.match(payload.note,/truncated/);
+  }finally{globalThis.fetch=previous;}
 });

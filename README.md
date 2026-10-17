@@ -160,3 +160,12 @@ Supported URLs include:
 This uses the existing \`YOUTUBE_API_KEY\`, one inexpensive \`videos.list\` lookup for uncached videos, and Cloudflare edge caching for 15 minutes where supported. No extra paid provider or API key is required. The backend is \`GET /api/video?input=<YouTube URL>\`. If a video is private/deleted/unavailable, the API key or YouTube quota is unavailable, or the URL is not recognized, the editor shows an error and remains usable for manual video descriptions.
 
 AI suggestion text is deliberately constrained to the supplied public metadata and creator edits. It should not claim to have watched videos or invent unlisted gameplay outcomes, tutorials, tactics or channel names. Treat generated text as **draft publishing copy that the creator must verify**, not a substitute for watching the content.
+
+
+### Handling incomplete Groq replies and sparse video descriptions
+
+AI Video Optimizer keeps useful Groq suggestions if the model returns valid but partially incomplete JSON: missing titles, hooks, descriptions, or topic-relevant hashtags are filled from the **free, deterministic publishing pack**, and the results are labeled **AI + TEMPLATES**. Fully valid responses show **AI-GENERATED**; unusable or malformed replies show **FREE DRAFT MODE** with a clear failure message. This reduces unnecessary loss of useful AI content, but the free Groq service can still sometimes be rate-limited or return malformed content.
+
+When a loaded YouTube video's description is composed mainly of hashtags or links, ChannelScope visibly warns that there isn't enough factual detail for specific gameplay advice. The fallback description acknowledges missing details rather than copying a wall of hashtags or inventing events. AI prompts explicitly prohibit claims based on footage, transcripts, or private analytics not supplied by the creator.
+
+Only hashtags supported by the video's supplied topic, description, or format should be carried over from a model response. Unrelated tags such as claimed tactics for an otherwise undescribed livestream are excluded. Creators should always verify drafts before uploading.
