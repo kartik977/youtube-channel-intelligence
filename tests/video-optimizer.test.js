@@ -233,7 +233,8 @@ test('Gaming livestream hashtag priorities choose franchise, series and niche be
   assert.deepEqual(pack.hashtags.slice(0,3).map(x=>x.tag),[
     '#CallOfDuty','#ModernWarfare','#GamingLive'
   ]);
-  assert.ok(pack.hashtags.some(x=>x.tag==='#MW4'));
+  // Don't invent #MW4 when the brief only says Modern Warfare 4.
+  assert.ok(!pack.hashtags.some(x=>x.tag==='#MW4'));
   assert.equal(pack.hashtags.filter(x=>x.category==='primary').length,3);
   assert.ok(pack.titleOptions.some(x=>/Live Gameplay|LIVE:/.test(x)));
   assert.ok(pack.titleOptions.every(x=>!/Explained|Breakdown|Strategy/i.test(x)));
