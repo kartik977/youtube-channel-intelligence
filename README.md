@@ -114,3 +114,31 @@ Groq's free-tier rate limits can change. If its API is unavailable or rate-limit
 ### Local checks
 
 Run **npm test**, then **npm run build**. For local backend testing, configure a git-ignored .dev.vars file based on .dev.vars.example and run **npm run dev:full**. The new POST /api/advisor route operates alongside the unchanged GET /api/channel route.
+
+
+## AI Video Optimizer — titles, description, hooks and relevant hashtags
+
+Select **AI Video Optimizer** in ChannelScope's sidebar. This independent tool helps you plan the next **Video / Short / Live stream** using your title/topic, an optional description, target audience and writing tone. You can also load a public recent upload as a starting point.
+
+Select **Optimize my video** to get:
+
+- **Three title drafts**, each individually copyable, with honest accurate wording.
+- **One ready-to-copy description** that explains the video before people click “Show more”.
+- **Two opening hooks** for the first seconds of the upload or livestream.
+- **Three recommended hashtags** tied to the specific topic, platform or niche, plus up to **two optional alternatives**, each explained. Copy individual tags, the top three tags, all suggestions, or description + top three tags in one click.
+- **Copy full publishing pack** for editing in YouTube Studio.
+
+### How hashtag recommendations work
+
+The main purpose is **topic relevance**. A suggested hashtag is not measured for reach, verified popularity, competition, live trend status or expected views. Only keep tags that describe the actual uploaded content. Prefer a small set of truly relevant hashtags, avoid unrelated tags and generic promises like \`#viral\`, and don't copy unrelated alternatives. YouTube currently shows up to three of the description's hashtags near the title and ignores **all** hashtags on a video when it has **more than 60**; this is a platform limit, **not** our recommendation. YouTube states that titles, thumbnails and descriptions matter more for discovery than ordinary video tags, which are separate from hashtags.
+
+Official guidance:
+- https://support.google.com/youtube/answer/6390658 (hashtag rules)
+- https://support.google.com/youtube/answer/12948449 (video descriptions)
+- https://support.google.com/youtube/answer/146402 (ordinary video tags vs. important discovery metadata)
+
+### Cost and deployment
+
+No additional API key is required: the optimizer uses the existing encrypted \`GROQ_API_KEY\` on the Cloudflare Worker to draft tailored suggestions, within its free-tier limits. On a missing key or API failure, it offers a clearly labeled **FREE DRAFT MODE** with conservative, topic-based fallback tags and titles, without claiming generative AI. The backend route is **POST /api/video-optimizer**; it does not modify existing \`/api/channel\` or \`/api/advisor\` behavior.
+
+Use \`npm test\` and \`npm run build\` to validate changes; GitHub Actions runs both automatically. There are no paid image-generation endpoints in this project.
