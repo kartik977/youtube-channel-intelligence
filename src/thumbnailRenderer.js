@@ -142,7 +142,7 @@ export function renderThumbnail(canvas, options={}) {
   ctx.fillText(badge,pad+24,(vertical?105:55)+(vertical?39:26));
   const channel=cleanThumbnailText(options.channel,40).toUpperCase() || 'CHANNELSCOPE';
   ctx.fillStyle='#ffffffc6';ctx.font='700 '+(vertical?32:18)+'px system-ui,Arial,sans-serif';
-  const channelY=vertical?H-170:H-70;
+  const channelY=vertical?H-170:H-33;
   ctx.fillText(channel,pad,channelY);
   drawLogo(ctx,options.logoImage,W-pad-(vertical?96:54),vertical?H-223:H-100,vertical?88:59);
 
@@ -150,8 +150,8 @@ export function renderThumbnail(canvas, options={}) {
   const secondary=cleanThumbnailText(options.subline,70);
   let y,maxW,fs,maxLines,lineHeight;
   if(vertical) {
-    y=layout===2?H*.82-330:H*.71;
-    maxW=W-pad*2;fs=110;maxLines=4;lineHeight=1.12;
+    y=H*.58;
+    maxW=W-pad*2;fs=110;maxLines=3;lineHeight=1.12;
   } else if(layout===0) {
     y=190;maxW=530;fs=69;maxLines=3;lineHeight=1.12;
   } else if(layout===1) {
