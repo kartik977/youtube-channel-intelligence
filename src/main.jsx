@@ -12,6 +12,7 @@ import {
 import { demoData } from './demoData';
 import Advisor from './Advisor';
 import VideoOptimizer from './VideoOptimizer';
+import OpportunityFinder from './OpportunityFinder';
 import './styles.css';
 
 const tabs = [
@@ -20,7 +21,8 @@ const tabs = [
   { id: 'compare', label: 'Compare Channels', icon: GitCompareArrows },
   { id: 'insights', label: 'Creator Insights', icon: Sparkles },
   { id: 'advisor', label: 'AI Creator Advisor', icon: Sparkles },
-  { id: 'optimizer', label: 'AI Video Optimizer', icon: BarChart3 }
+  { id: 'optimizer', label: 'AI Video Optimizer', icon: BarChart3 },
+  { id: 'opportunities', label: 'Content Opportunities', icon: Target }
 ];
 const compact = n => n == null ? '—' : new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 const number = n => n == null ? 'Not available' : Number(n).toLocaleString('en-US');
@@ -219,8 +221,13 @@ function App(){
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
   const [menu,setMenu] = useState(false);
+  const [optimizerDraft,setOptimizerDraft] = useState({title:'',version:0});
   const model = useMemo(()=>analyze(data),[data]);
   const switchTab = id => {setTab(id);setMenu(false);};
+  function useOpportunity(idea) {
+    setOptimizerDraft(prev=>({title:idea.title,version:prev.version+1}));
+    switchTab('optimizer');
+  }
   async function submit(e) {
     e.preventDefault(); setBusy(true); setError('');
     try { const result=await loadChannel(query.trim());setData(result);setTab('overview'); }
@@ -252,7 +259,8 @@ function App(){
         {tab==='compare'&&<Comparison key={data.channel.id} data={data} model={model}/>}
         {tab==='insights'&&<Insights data={data} model={model}/>}
         {tab==='advisor'&&<Advisor key={data.channel.id + ':' + data.fetchedAt} data={data}/>}
-        {tab==='optimizer'&&<VideoOptimizer key={data.channel.id} data={data}/>}
+        {tab==='optimizer'&&<VideoOptimizer key={data.channel.id + ':' + optimizerDraft.version} data={data} initialTopic={optimizerDraft.title}/>}
+        {tab==='opportunities'&&<OpportunityFinder key={data.channel.id + ':' + data.fetchedAt} data={data} onUseIdea={useOpportunity}/>}
         <footer><span>ChannelScope · Independent YouTube analytics project</span><span>{data.source==='demo'?'Fictional example':'Fetched '+day(data.fetchedAt)} · Public data only · Not affiliated with YouTube</span></footer>
       </div>
     </main>
