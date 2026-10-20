@@ -298,3 +298,45 @@ test('Explicit educational brief can retain a genuine tutorial title and explana
   assert.match(report.description,/step-by-step/);
   assert.ok(report.hashtags.some(x=>x.tag==='#SpringBoot'));
 });
+
+
+test('In-game attack hashtags are not surfaced as ambiguous real-world news tags',()=>{
+  const scene=normalizeBrief({
+    kind:'live',tone:'cinematic',topic:'Call of Duty–Modern Warfare 4 – Part 1',
+    description:'Seoul Bombing by North Korea in the opening scene of the game. First gameplay.',
+    channelName:'Daywalker_OP'
+  });
+  const ai={
+    titles:['Call of Duty MW4 Seoul Opening Gameplay LIVE','Modern Warfare 4 — Seoul Opening LIVE','MW4 Part 1 Live Gameplay'],
+    description:'Daywalker_OP streams the first Call of Duty Modern Warfare 4 gameplay featuring the Seoul bombing.',
+    hooks:['Welcome to the opening scene in Call of Duty Modern Warfare 4.','We are starting the first part of Modern Warfare 4.'],
+    hashtags:[
+      {tag:'#SeoulBombing',reason:'Event in the game'},
+      {tag:'#CallOfDuty',reason:'Featured game'},
+      {tag:'#ModernWarfare',reason:'Game series'},
+      {tag:'#GamingLive',reason:'Live gameplay'},
+      {tag:'#MW4',reason:'Game shorthand'}
+    ]
+  };
+  const report=validateGenerated(ai,freeVideoPack(scene),scene);
+  assert.ok(!report.hashtags.some(x=>x.tag.toLowerCase()==='#seoulbombing'));
+  assert.deepEqual(report.hashtags.slice(0,3).map(x=>x.tag),['#CallOfDuty','#ModernWarfare','#GamingLive']);
+});
+
+test('Stylistic cinematic tone cannot invent cinematic moments or intense action',()=>{
+  const scene=normalizeBrief({
+    kind:'live',tone:'cinematic',topic:'Call of Duty Modern Warfare 4 Part 1',
+    description:'The opening scene involves a bombing of Seoul.',
+    channelName:'Daywalker_OP'
+  });
+  const ai={
+    titles:['Call of Duty Modern Warfare 4 Part 1 Live Gameplay'],
+    description:'Daywalker_OP captures cinematic moments and intense action during this opening game session.',
+    hooks:['Get ready for epic battles and cinematic moments.'],
+    hashtags:[{tag:'#CallOfDuty',reason:'Game'},{tag:'#ModernWarfare',reason:'Series'},{tag:'#GamingLive',reason:'Format'}]
+  };
+  const result=validateGenerated(ai,freeVideoPack(scene),scene);
+  assert.equal(result.mode,'hybrid');
+  assert.doesNotMatch(result.description,/cinematic moments|intense action/i);
+  assert.doesNotMatch(result.hooks.join(' '),/epic battles|cinematic moments/i);
+});

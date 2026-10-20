@@ -6,7 +6,8 @@ const RISKY=[
  /\b(?:storyline|narrative|plot twists?|boss fights?|game secrets?|hidden areas?|map control)\b/i,
  /\b(?:walkthrough|step[- ]by[- ]step|how to|tutorial|training|we (?:teach|explain|demonstrate)|breaks? down)\b/i,
  /\b(?:highlighting key moments|key moments|expert tips?|pro tips?|in[- ]depth|exclusive footage)\b/i,
- /\b(?:multiplayer|teamwork|co-op|ranked|competitive match|campaign|mission)\b/i
+ /\b(?:multiplayer|teamwork|co-op|ranked|competitive match|campaign|mission)\b/i,
+ /\b(?:cinematic moments?|intense action|epic battles?|dramatic cutscenes?|stunning visuals?|amazing scenes?)\b/i
 ];
 const fluff=new Set(['with','part','video','live','stream','watch','this','your','about','first','from','what','doing','some']);
 export function tutorialIntent(brief){
@@ -30,6 +31,15 @@ export function descriptionSupported(candidate,brief){
   // An invented organization name and implied video-watching are not valid.
   if(/\bThe Creator Lab\b/i.test(text)&&!/\bThe Creator Lab\b/i.test(evidence+' '+(brief.channelName||'')))return false;
   if(/\b(?:we see|viewers (?:see|get a clear look)|the footage shows|we witness|you will learn)\b/i.test(text))return false;
+  return true;
+}
+// A bare crisis/event hashtag on a game stream might look like real news.
+export function hashtagSafe(value,brief){
+  const name=String(value||'').replace(/^#/,'');
+  const context=(brief.topic||'')+' '+(brief.description||'');
+  const gaming=/call of duty|modern warfare|gaming|gameplay|playstation|ps5|xbox|fortnite|minecraft|cricket\s*26/i.test(context);
+  if(gaming&&/(bombing|massacre|terror(?:ism|attack)?|shooting|invasion|attack|warcrime|tragedy)/i.test(name)&&
+    !/(gaming|gameplay|cod|mw\d|modernwarfare)/i.test(name))return false;
   return true;
 }
 export function hashtagType(value){

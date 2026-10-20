@@ -178,3 +178,21 @@ The publishing pack now **prioritizes game/series/platform hashtags** before one
 Gaming titles avoid "explained", "strategy", "breakdown", "guide", and similar promises unless the video brief actually describes a tutorial or explanation. Legitimate tutorials still receive educational titles. A server-side draft guard also rejects selected unsupported descriptions and spoken hooks (e.g., invented weapon loadouts or gameplay mechanics), falling back to wording grounded in the supplied title and creator-entered description. When a draft has been corrected this way, it is labeled **AI + TEMPLATES**, not fully AI-generated.
 
 This guard is a **conservative heuristic, not fact verification**: it cannot watch the footage or prove the video title/description truthful. Review all generated copy before publishing, especially for sensitive topics or unknown video content.
+
+
+## Content Opportunity Finder — free creator growth research
+
+The **Content Opportunities** sidebar page analyzes the same public channel sample already loaded by ChannelScope (up to 30 recent accessible uploads). Select **Find opportunities** to produce:
+
+- **Recurring title themes:** Named games, subjects and recurring keywords grouped from public video titles. A theme needs at least two matching uploads. Each sample video is assigned to at most one group; unmatched uploads are kept separately. This is a heuristic, not YouTube's own topic classification.
+- **Topic performance context:** Count of uploads and median *cumulative* public views in each theme, compared to the channel's sampled median. Shows representative videos and sample sizes, not causal explanations or predicted growth. Older videos have had longer to accumulate views and no age-matched snapshots are available.
+- **Upload-length comparison:** Counts and sampled median views for durations of up to three minutes, longer than three minutes and unknown. **Duration does not prove YouTube Shorts status**, so the page labels videos "short-length", not "Shorts".
+- **Three next-video experiments:** Proposed topics, opening hooks, reasons for testing, and a sensible metric such as views after the same number of days since publishing. **Use in Video Optimizer** carries a suggestion into the existing title/description/hashtag workflow, where creators supply actual details before publishing.
+
+This route is \`POST /api/opportunities\`. The deterministic topic analysis and evidence-driven idea templates work without any model key. If \`GROQ_API_KEY\` exists, optional Groq-generated ideas must use a theme name found in the actual public sample; on quota limits, invalid output or unavailable credentials, the tool returns a clearly labeled **FREE DATA-BASED IDEAS** result. **No new keys or paid API services** are required.
+
+### Final Video Optimizer accuracy updates
+
+Livestream and gameplay titles continue to avoid unwarranted educational claims. Server-side heuristics now also reject unsupported promises about "cinematic moments", "intense action" or similar unseen footage just because the creator selected a cinematic *writing style*. For a game stream involving an in-game attack, a bare tag like \`#SeoulBombing\` could be mistaken for real news; it is omitted in favor of accurate game/series and gaming-format hashtags when relevant.
+
+These safeguards are approximations and cannot fact-check actual footage. They do **not** measure actual trending hashtags, search volume, impressions, retention or click-through rate. Users must review all generated titles and descriptions before publishing.
