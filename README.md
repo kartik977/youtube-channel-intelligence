@@ -306,3 +306,22 @@ Automated checks cover month boundaries, leap days, cadence, all-day calendar/CS
 **Plan to publish:** Every Content Calendar card now has a **Use in Video Optimizer** action. It opens **AI Video Optimizer** with a prospective **Short** topic, planning description, suggested opening hook, and audience prefilled. The user reviews and clicks **Optimize my video** to generate the final titles, description, and hashtags (no automatic AI request on navigation). Planned ideas are explicitly labeled **not recorded footage**. No fictional demo upload titles are passed as video analytics. Instagram Reel calendar ideas can be adapted into a YouTube Short draft using this action; the optimizer remains a YouTube publishing tool.
 
 No Instagram or YouTube authentication, additional API keys, payments, private video analysis or automatic publishing is added.
+
+
+## Separated workspaces: YouTube, Instagram, and Creator Tools
+
+ChannelScope now has a **platform switcher** at the top of its sidebar rather than a long mixed list of tools:
+
+- **YouTube** — Overview, Video Library, Compare Channels, Creator Insights, AI Creator Advisor, AI Video Optimizer and Content Opportunities. Public YouTube search, analytics and demo-data banners only appear in this workspace (except that a planned calendar handoff opens the optimizer with its own brief).
+- **Instagram** — Instagram Studio with Bio Generator, Caption Generator and Hashtag Generator. These do **not** require a YouTube channel or Instagram login.
+- **Creator Tools** — Social Publishing (draft separate Instagram and YouTube Shorts copy from one brief) and Content Calendar (plan either or both platforms). These are intentionally shared instead of being duplicated or incorrectly presented as Instagram-only/YouTube-only features.
+
+The workspace pages use stable, shareable hash URLs that work on the existing Cloudflare Worker Static Assets deployment, for example:
+- `#/youtube/overview`
+- `#/youtube/video-optimizer`
+- `#/instagram/studio`
+- `#/creator/social-publishing`
+- `#/creator/content-calendar`
+
+Browser back/forward and direct links select the matching workspace and page. Older simple hashes are still recognized. The design includes a scrollable sidebar and mobile menu, and it preserves **Content Calendar → Video Optimizer** with the planned-video context and all existing backend endpoints. No authentication, new dependencies, API keys, pricing changes or migrations are required.
+
