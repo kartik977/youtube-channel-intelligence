@@ -7,7 +7,7 @@ const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:
 }});
 const compact=(value,max)=>typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,max):'';
 const keywords=raw=>compact(raw,180).toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').split(/\s+/u)
-  .filter(x=>x.length>=4&&!['this','that','with','from','their','your','about','content','making','video','reels','shorts','create','creator','videos'].includes(x));
+  .filter(x=>(x.length>=4||/^ps[345]$/.test(x))&&!['this','that','with','from','their','your','about','content','making','video','reels','shorts','create','creator','videos'].includes(x));
 const unsafe=/\b(?:guaranteed?|viral|proven growth|exploding views|trending now|algorithm hack|increase views|millions? of views|i filmed|we filmed|i visited|we visited|made a million|best posting time)\b/i;
 const generic=/(?:\btopic\s*:|here is one detail|one detail worth noticing|spotlight one real detail|share one observation|ask an interesting niche question|describe one observation|generic gaming clip|catchy gaming content|something cool|one useful question|post consistently)/i;
 export function validateAIPlan(payload,plan){
