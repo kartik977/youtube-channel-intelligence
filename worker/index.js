@@ -6,6 +6,7 @@ import { onRequestPost as optimizeVideo } from '../functions/api/video-optimizer
 import { onRequestGet as getVideo } from '../functions/api/video.js';
 import { onRequestPost as getOpportunities } from '../functions/api/opportunities.js';
 import { onRequestPost as instagramStudio } from '../functions/api/instagram.js';
+import { onRequestPost as socialPack } from '../functions/api/social-pack.js';
 
 const json = (body, status) => new Response(JSON.stringify(body), {
   status,
@@ -56,6 +57,11 @@ export default {
     if (path === '/api/instagram') {
       if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
       return instagramStudio({request,env});
+    }
+
+    if (path === '/api/social-pack') {
+      if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
+      return socialPack({request,env});
     }
 
     if (path.startsWith('/api/')) {
