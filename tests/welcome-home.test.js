@@ -42,7 +42,7 @@ test('Each platform card has a meaningful explanation and opens the correct work
   for(const label of ['youtube','instagram','creator']){
     assert.match(home,new RegExp("id:'"+label+"'"));
     assert.match(home,new RegExp("onExplore\\(item.id\\)"));
-    assert.match(home,new RegExp("workspace-"+label+"|welcome-card-"+label));
+    assert.match(home,/className=\{\'welcome-card welcome-card-\'\+item\.id\}/);
   }
   assert.match(home,/Channel analytics/);
   assert.match(home,/Profile bios/);
