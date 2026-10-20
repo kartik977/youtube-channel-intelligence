@@ -17,7 +17,7 @@ export function validateAIPlan(payload,plan){
     const title=compact(item?.title,120),idea=compact(item?.idea,220),
       hook=compact(item?.hook,170),cta=compact(item?.callToAction,120);
     if(!title||title.length<12||!idea||!hook||!cta||unsafe.test([title,idea,hook,cta].join(' ')))continue;
-    if(nicheWords.length&&!nicheWords.some(word=>(title+' '+idea).toLowerCase().includes(word)))continue;
+    if(nicheWords.length&&!nicheWords.some(word=>title.toLowerCase().includes(word)))continue;
     if(seen.has(title.toLowerCase()))continue;
     seen.add(title.toLowerCase());
     valid.push({title,idea,hook,callToAction:cta});
