@@ -270,3 +270,22 @@ The YouTube title, description and opening hook each honor that detected intent.
 The free fallback produces natural titles, correctly capitalizes recognized places (for example Plano, Texas), and avoids robotic lead-ins such as "Short video about...". The same safeguards also check Groq suggestions. They reject unsupported claims of instructional content, invented outcomes, filming/ownership, and specific unseen props such as ghosts, pumpkins or special lighting. Rejected AI fields are replaced independently with truthful free templates and labeled **AI + TEMPLATES**.
 
 This is not factual verification and cannot see the clip itself: creators should review and edit every draft before posting. These changes do not require a new API key, paid service, social login or change to existing endpoints.
+
+
+## Content Calendar — free 7-day or 30-day creator planning
+
+Open **Content Calendar** from the sidebar, without connecting a YouTube channel or Instagram account.
+
+1. Describe a content niche (minimum 8 characters), optionally the audience, and choose a priority: consistency, engagement, growth experiments, or education.
+2. Choose **Instagram Reels**, **YouTube Shorts**, or **Mix both platforms** (alternates the platforms).
+3. Choose a **7- or 30-day window**, a creator-controlled pace of **2, 3, or 5 posts/week**, and a start date.
+4. Generate a schedule of specific *ideas to create*, suggested opening hooks, calls to action, and notes aligned with the chosen goal. **Fresh angles** rotates the proposed prompts.
+5. Check off completed tasks locally and **Copy plan**, **Download CSV**, or **Download .ics** to import all-day planning tasks into your calendar app. The calendar export does **not** assign a posting time or publish anything.
+
+The plan is a *draft* rather than a guaranteed reach strategy or a real-time Instagram/YouTube trend analysis. Suggestions can include experiments you must still film and verify. There are no private-platform analytics, social-media logins, storage, background tasks, posts, or paid API calls. No additional Cloudflare secrets are needed. **The web page does not persist completions across refreshes; export the plan to keep it.**
+
+### Social Publishing writing variety
+
+The existing Social Publishing API now uses complementary writing functions: **title states the subject, description adds factual context, hook invites attention**, rather than repeating the same sentence in all three fields. A Halloween decor showcase retains cautious wording: a display at a home in Plano is not converted into a tutorial. AI outputs that repeat near-identical descriptions, titles, and hooks trigger safe field-level template substitutions, labeled **AI + TEMPLATES** as before. This preserves the existing free Groq integration and every existing API route.
+
+Automated checks cover month boundaries, leap days, cadence, all-day calendar/CSV export, invalid input, and near-duplicate AI text. Tests run via npm test, followed by npm run build.
