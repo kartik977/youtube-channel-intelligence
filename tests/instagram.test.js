@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {normalizeInstagramBrief,freeInstagramPack,validateInstagramAI,relevantTag,safeBio,onRequestPost} from '../functions/api/instagram.js';
+import {normalizeInstagramBrief,freeInstagramPack,validateInstagramAI,relevantTag,safeBio,onRequestPost,fallbackCaptions} from '../functions/api/instagram.js';
 import worker from '../worker/index.js';
 
 const bio={
@@ -149,4 +149,104 @@ test('Worker API route supports only POST, keeps existing channel and static rou
   assert.equal(await res.text(),'Static site');
   res=await worker.fetch(new Request('https://channelscope.example/api/channel?input=%40YouTube'),env,ctx);
   assert.equal(res.status,503);
+});
+
+
+test('Caption generator creates three distinct copy-ready caption-and-hashtag options in free mode',()=>{
+  const b=normalizeInstagramBrief({
+    kind:'caption',tone:'friendly',profile:'creator',format:'post',
+    description:'Halloween decoration in Plano',audience:'Halloween lovers',name:''
+  });
+  const pack=freeInstagramPack(b);
+  assert.equal(pack.kind,'caption');assert.equal(pack.mode,'free');
+  assert.equal(pack.captions.length,3);
+  assert.equal(new Set(pack.captions.map(x=>x.text)).size,3);
+  for(const caption of pack.captions){
+    assert.match(caption.text,/Halloween/i);
+    assert.ok(caption.hashtags.length>=3);
+    assert.ok(caption.hashtags.every(t=>t.startsWith('#')));
+    assert.doesNotMatch(caption.text,/handmade|diy|festival|official event|best in town/i);
+  }
+});
+test('Contextual Halloween tags reject DIY/event claims and semantic duplicates',()=>{
+  const b=normalizeInstagramBrief({
+    kind:'hashtags',tone:'friendly',profile:'creator',format:'post',
+    description:'Halloween decoration in Plano',audience:'Halloween fans'
+  });
+  for(const tag of ['#HalloweenDIY','#PlanoEvents','#HalloweenEvent','#DIYDecor','#PlanoTexas']){
+    assert.equal(relevantTag(tag,b),false,tag);
+  }
+  assert.equal(relevantTag('#HalloweenDecor',b),true);
+  assert.equal(relevantTag('#HalloweenDisplay',b),true);
+  assert.equal(relevantTag('#SpookySeason',b),true);
+  const out=validateInstagramAI({hashtags:[
+    {tag:'#HalloweenDIY',reason:'Decorations are handmade'},
+    {tag:'#PlanoEvents',reason:'An official festival'},
+    {tag:'#HalloweenPlano',reason:'Location and season'},
+    {tag:'#PlanoHalloween',reason:'Same location and season'},
+    {tag:'#HalloweenDecor',reason:'Decoration topic'},
+    {tag:'#HalloweenDecoration',reason:'Duplicate meaning'},
+    {tag:'#HalloweenDisplay',reason:'Display type'},
+    {tag:'#SpookySeason',reason:'Seasonal'},
+    {tag:'#HalloweenVibes',reason:'Seasonal mood'}
+  ]},b,freeInstagramPack(b));
+  assert.equal(out.kind,'hashtags');
+  assert.ok(!out.hashtags.some(x=>/#(?:.*DIY|.*Events?|PlanoTexas)/i.test(x.tag)),JSON.stringify(out));
+  const all=out.hashtags.map(x=>x.tag.toLowerCase());
+  assert.equal(all.filter(x=>x==='#halloweenplano'||x==='#planohalloween').length,1);
+  assert.equal(all.filter(x=>x==='#halloweendecoration'||x==='#halloweendecor').length,1);
+  assert.ok(all.includes('#halloweendecor'));
+  assert.ok(all.includes('#halloweendisplay'));
+});
+test('No acceptable model hashtags forces free fallback without falsely claiming AI',()=>{
+  const b=normalizeInstagramBrief({
+    kind:'hashtags',tone:'friendly',profile:'creator',format:'reel',
+    description:'Halloween decoration in Plano',audience:'Halloween fans'
+  });
+  assert.throws(()=>validateInstagramAI({hashtags:[
+    {tag:'#HalloweenDIY'},{tag:'#PlanoEvents'},{tag:'#FYP'}
+  ]},b,freeInstagramPack(b)),/incomplete/);
+});
+test('Groq caption drafts accept safe copy and replace unsupported details with templates',()=>{
+  const b=normalizeInstagramBrief({
+    kind:'caption',tone:'friendly',profile:'creator',format:'reel',
+    description:'Halloween decoration in Plano',audience:'Halloween lovers'
+  });
+  const response=validateInstagramAI({captions:[
+    {label:'Fresh',text:'Halloween decoration in Plano! 🎃 A little spooky magic. 👻',hashtags:['#HalloweenDecor','#PlanoHalloween','#HalloweenDIY']},
+    {label:'Unverified claim',text:'The biggest handmade DIY Halloween festival in Plano!',hashtags:['#PlanoEvents']},
+    {label:'Party',text:'Halloween decoration in Plano. What do you think? 🕸️',hashtags:['#HalloweenDisplay','#SpookySeason']}
+  ]},b,freeInstagramPack(b));
+  assert.equal(response.kind,'caption');
+  assert.equal(response.mode,'hybrid');
+  assert.equal(response.captions.length,3);
+  assert.ok(response.captions.some(x=>/little spooky magic/.test(x.text)));
+  assert.ok(response.captions.every(x=>!/(handmade|festival)/i.test(x.text)));
+  assert.ok(response.captions.every(x=>!x.hashtags?.includes('#HalloweenDIY')));
+  assert.ok(response.captions.every(x=>x.hashtags?.length>=3));
+});
+test('Groq produces AI caption mode with grounded copy and no additional credentials',async()=>{
+  const previous=globalThis.fetch,brief={
+    kind:'caption',tone:'friendly',profile:'creator',format:'post',
+    description:'Halloween decoration in Plano',audience:'Halloween lovers'
+  };
+  globalThis.fetch=async(url,init)=>{
+    assert.equal(url,'https://api.groq.com/openai/v1/chat/completions');
+    const body=JSON.parse(init.body);
+    assert.equal(body.response_format.type,'json_object');
+    return Response.json({choices:[{message:{content:JSON.stringify({captions:[
+      {label:'Short',text:'Halloween decoration in Plano 🎃',hashtags:['#HalloweenDecor','#PlanoHalloween']},
+      {label:'Fun',text:'Halloween vibes in Plano! What is your favorite decoration? 👻',hashtags:['#HalloweenDecor','#HalloweenDisplay']},
+      {label:'Minimal',text:'Plano Halloween decoration ✨',hashtags:['#PlanoHalloween','#HalloweenDecor']}
+    ]})}}]});
+  };
+  try{
+    const r=await onRequestPost({request:request(brief),env:{GROQ_API_KEY:'not-returned'}});
+    assert.equal(r.status,200);
+    const data=await r.json();
+    assert.equal(data.kind,'caption');assert.equal(data.mode,'ai');
+    assert.equal(data.captions.length,3);
+    assert.ok(data.captions.every(x=>x.hashtags.length>=3));
+    assert.doesNotMatch(JSON.stringify(data),/not-returned/);
+  }finally{globalThis.fetch=previous;}
 });
