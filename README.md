@@ -282,7 +282,7 @@ Open **Content Calendar** from the sidebar, without connecting a YouTube channel
 4. Generate a schedule of specific *ideas to create*, suggested opening hooks, calls to action, and notes aligned with the chosen goal. **Fresh angles** rotates the proposed prompts.
 5. Check off completed tasks locally and **Copy plan**, **Download CSV**, or **Download .ics** to import all-day planning tasks into your calendar app. The calendar export does **not** assign a posting time or publish anything.
 
-The plan is a *draft* rather than a guaranteed reach strategy or a real-time Instagram/YouTube trend analysis. Suggestions can include experiments you must still film and verify. There are no private-platform analytics, social-media logins, storage, background tasks, posts, or paid API calls. No additional Cloudflare secrets are needed. **The web page does not persist completions across refreshes; export the plan to keep it.**
+The plan is a *draft* rather than a guaranteed reach strategy or a real-time Instagram/YouTube trend analysis. Suggestions can include experiments you must still film and verify. There are no private-platform analytics, social-media logins, storage, background tasks, posts, or mandatory paid API calls. The calendar uses POST /api/content-calendar and the **existing optional Groq free-tier key** for up to twelve more specific niche ideas; if missing, rate-limited or invalid, the full calendar still works with free templates. No additional Cloudflare secrets are needed. **The web page does not persist completions across refreshes; export the plan to keep it.**
 
 ### Social Publishing writing variety
 
