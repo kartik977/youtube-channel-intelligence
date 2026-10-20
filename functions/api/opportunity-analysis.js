@@ -1,120 +1,141 @@
-// Reproducible public-data topic/format analysis; no private YouTube metrics.
-const tidy=(v,max=130)=>typeof v==='string'?v.replace(/\s+/g,' ').trim().slice(0,max):'';
-const validCount=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0?Math.min(x,1e12):null;
-const median=xs=>{if(!xs.length)return null;const a=[...xs].sort((x,y)=>x-y),i=Math.floor(a.length/2);return a.length%2?a[i]:(a[i-1]+a[i])/2;};
-const stops=new Set('the a an and or of in on at from with to for part pt episode ep video short shorts live livestream stream streaming gameplay gaming play playing watch watching highlights highlight full channel new best epic amazing my first last this that what how why when your our you i we reaction reacts gameplay reaction vlog vlogs tutorial tutorials ps5 ps4 xbox edition update 2026 2025 2024 2023 2022'.split(' '));
-const anchors=[
-  [/modern\s*warfare/i,'Modern Warfare'],[/call\s*of\s*duty/i,'Call of Duty'],
-  [/cricket\s*26/i,'Cricket 26'],[/minecraft/i,'Minecraft'],
-  [/fortnite/i,'Fortnite'],[/valorant/i,'Valorant'],
-  [/grand\s*theft\s*auto|\bgta\b/i,'Grand Theft Auto'],
-  [/\bfifa\b|ea\s*sports\s*fc/i,'Football games'],
-  [/spring\s*boot/i,'Spring Boot'],[/javascript/i,'JavaScript'],[/python/i,'Python'],
-  [/iphone/i,'iPhone'],[/android/i,'Android'],[/travel|itinerary/i,'Travel'],
-  [/cooking|recipe/i,'Cooking'],[/fitness|workout/i,'Fitness']
+// Public-data opportunity analysis. Deterministic, no private metrics or implied causation.
+const tidy=(v,max=150)=>typeof v==='string'?v.replace(/\s+/g,' ').trim().slice(0,max):'';
+const count=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0?Math.min(x,1e12):null;
+const median=xs=>{if(!xs.length)return null;const a=[...xs].sort((x,y)=>x-y),n=a.length>>1;return a.length%2?a[n]:(a[n-1]+a[n])/2;};
+const fillers=new Set('the a an and or of in on at from with to for part pt episode ep video short shorts live livestream stream streaming gameplay gaming play playing watch watching highlights highlight full channel new best epic amazing my first last this that what how why when your our you i we reaction reacts vlog tutorial tutorials ps5 ps4 xbox edition update 2026 2025 2024 2023 2022 funny try trying next clips scene official trailer'.split(' '));
+
+// Explicit game/series names take precedence over generic words and hashtags.
+// #cricketlover doesn't become its own topic; 007 First Light isn't just Light.
+const namedTopics=[
+  {topic:'007 First Light',pattern:/\b(?:007[\s_-]*first[\s_-]*light|first[\s_-]*light(?:[\s_-]*007)?)\b/i},
+  {topic:'Modern Warfare',pattern:/\b(?:modern[\s_-]*warfare|mw[\s_-]*[234]|call[\s_-]*of[\s_-]*duty)\b/i},
+  {topic:'Cricket 26',pattern:/\b(?:cricket[\s_-]*26|cricket26|ipl[\s_-]*2026)\b/i},
+  {topic:'Minecraft',pattern:/\bminecraft\b/i},
+  {topic:'Fortnite',pattern:/\bfortnite\b/i},
+  {topic:'Valorant',pattern:/\bvalorant\b/i},
+  {topic:'Grand Theft Auto',pattern:/\b(?:grand[\s_-]*theft[\s_-]*auto|gta[\s_-]*[v56]?)\b/i},
+  {topic:'Football games',pattern:/\b(?:fifa|ea[\s_-]*sports[\s_-]*fc|fc[\s_-]*2[456]|ultimate[\s_-]*team)\b/i},
+  {topic:'Spring Boot',pattern:/\bspring[\s_-]*boot\b/i},
+  {topic:'JavaScript',pattern:/\bjavascript\b/i},
+  {topic:'Python',pattern:/\bpython\b/i},
+  {topic:'iPhone',pattern:/\biphone\b/i},
+  {topic:'Android',pattern:/\bandroid\b/i}
 ];
-export function videoSeconds(value){
-  if(typeof value!=='string')return null;
-  const match=/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$/.exec(value);
-  if(!match)return null;
-  const total=(Number(match[1]||0)*86400)+(Number(match[2]||0)*3600)+
-    (Number(match[3]||0)*60)+Number(match[4]||0);
-  return Number.isFinite(total)&&total>0?total:null;
+function strippedTitle(title){
+  return tidy(title,150).replace(/#[^\s#]+/g,' ').replace(/https?:\/\/\S+/gi,' ').replace(/\s+/g,' ').trim();
 }
-function tokens(title){
-  return [...new Set(tidy(title,160).toLowerCase().replace(/[^a-z0-9]+/g,' ').split(/\s+/)
-    .filter(w=>w.length>=4&&!stops.has(w)&&!/^\d+$/.test(w)))];
+function words(title){
+  return [...new Set(strippedTitle(title).toLowerCase().replace(/[^a-z0-9]+/g,' ').split(/\s+/)
+    .filter(w=>w.length>=4&&!fillers.has(w)&&!(/^\d+$/.test(w))))];
+}
+export function detectTopic(title){
+  const full=tidy(title,150);
+  for(const g of namedTopics)if(g.pattern.test(full))return g.topic;
+  if(/\b(?:football|soccer|world[\s_-]*cup)\b/i.test(strippedTitle(full))&&/\b(?:ps5|ps4|gaming|game|goal|fifa)\b/i.test(full))return 'Football games';
+  if(/\b(?:cricket|cricketlover|ipl)\b/i.test(full)&&/\b(?:gaming|ps5|ipl|cricketlover)\b/i.test(full))return 'Cricket gaming';
+  return null;
+}
+export function videoSeconds(v){
+  if(typeof v!=='string')return null;
+  const m=/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$/.exec(v);
+  if(!m)return null;
+  const seconds=Number(m[1]||0)*86400+Number(m[2]||0)*3600+Number(m[3]||0)*60+Number(m[4]||0);
+  return Number.isFinite(seconds)&&seconds>0?seconds:null;
 }
 export function normalizeOpportunityInput(source){
   if(!source||typeof source!=='object'||!source.channel||!Array.isArray(source.videos)||source.videos.length>30||
     !['demo','youtube'].includes(source.source))throw Error('Load a channel with up to 30 recent public uploads.');
   const channel={id:tidy(source.channel.id,100),title:tidy(source.channel.title,100)};
   if(!channel.id||!channel.title)throw Error('Missing public channel details.');
-  const videos=source.videos.map(x=>{
-    const time=typeof x?.publishedAt==='string'?Date.parse(x.publishedAt):NaN;
-    return {
-      id:tidy(x?.id,100),title:tidy(x?.title,150),views:validCount(x?.views),
-      publishedAt:Number.isFinite(time)?new Date(time).toISOString():null,
-      duration:typeof x?.duration==='string'?x.duration.slice(0,50):null,
-      url:typeof x?.url==='string'&&/^https:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(x.url)?x.url:null
-    };
+  const videos=source.videos.map(v=>{
+    const date=typeof v?.publishedAt==='string'?Date.parse(v.publishedAt):NaN;
+    return {id:tidy(v?.id,100),title:tidy(v?.title,150),views:count(v?.views),
+      publishedAt:Number.isFinite(date)?new Date(date).toISOString():null,
+      duration:typeof v?.duration==='string'?v.duration.slice(0,50):null,
+      url:typeof v?.url==='string'&&/^https:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}$/.test(v.url)?v.url:null};
   }).filter(v=>v.id&&v.title);
   const sampledAt=typeof source.fetchedAt==='string'&&Number.isFinite(Date.parse(source.fetchedAt))?
     new Date(source.fetchedAt).toISOString():new Date().toISOString();
   return {source:source.source,channel,videos,sampledAt};
 }
-function aggregate(group,overall){
-  const counted=group.filter(x=>x.views!==null);
-  const med=median(counted.map(x=>x.views));
-  const base=overall===null||overall===0?null:med/overall;
-  return {count:group.length,measured:counted.length,medianViews:med,relativeMedian:base,
-    examples:[...counted].sort((a,b)=>b.views-a.views).slice(0,2).map(x=>({
-      id:x.id,title:x.title,views:x.views,url:x.url,publishedAt:x.publishedAt
-    }))};
-}
-function toTopicTitle(topic){
-  return topic.length>42?topic.slice(0,42):topic;
+const clipVideo=v=>({id:v.id,title:v.title,views:v.views,url:v.url,publishedAt:v.publishedAt});
+function groupStats(videos,base){
+  const withViews=videos.filter(v=>v.views!==null),middle=median(withViews.map(v=>v.views));
+  return {count:videos.length,measured:withViews.length,medianViews:middle,
+    relativeMedian:middle===null||base===null||base===0?null:middle/base,
+    examples:[...videos].sort((a,b)=>(b.views??-1)-(a.views??-1)).slice(0,3).map(clipVideo)};
 }
 export function analyzeOpportunities(data){
-  const rows=data.videos,viewed=rows.filter(x=>x.views!==null);
-  const baseline=median(viewed.map(x=>x.views));
-  const counter=new Map();
-  const rowWords=rows.map(v=>tokens(v.title));
-  rowWords.forEach(words=>words.forEach(w=>counter.set(w,(counter.get(w)||0)+1)));
-  const dynamic=[...counter.entries()].filter(([w,count])=>count>=2&&count<rows.length&&w.length>=4)
-    .sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,7);
-  const patterns=[...anchors.map(([regex,label])=>({
-    name:label,matches:rows.map((v,i)=>regex.test(v.title)?i:null).filter(v=>v!==null)
-  })),...dynamic.map(([word])=>({
-    name:word[0].toUpperCase()+word.slice(1),
-    matches:rowWords.map((set,i)=>set.includes(word)?i:null).filter(v=>v!==null)
-  }))].filter(g=>g.matches.length>=2);
-  // One video belongs to one topic cluster. Prefer narrower named subjects.
-  patterns.sort((a,b)=>b.name.length-a.name.length||b.matches.length-a.matches.length);
-  const assigned=new Set(),themes=[];
-  for(const pattern of patterns){
-    const indices=pattern.matches.filter(i=>!assigned.has(i));
-    if(indices.length<2)continue;
-    indices.forEach(i=>assigned.add(i));
-    themes.push({topic:pattern.name,...aggregate(indices.map(i=>rows[i]),baseline)});
-    if(themes.length===5)break;
+  const videos=data.videos,publicViews=videos.filter(v=>v.views!==null),baseline=median(publicViews.map(v=>v.views));
+  const groups=new Map(),unassigned=[];
+  const labeled=videos.map(v=>({...v,topic:detectTopic(v.title)}));
+  for(const v of labeled){
+    if(v.topic){if(!groups.has(v.topic))groups.set(v.topic,[]);groups.get(v.topic).push(v);}
+    else unassigned.push(v);
   }
-  themes.sort((a,b)=>(b.relativeMedian??-1)-(a.relativeMedian??-1)||b.count-a.count);
-  const remaining=rows.filter((_,i)=>!assigned.has(i));
-  if(remaining.length)themes.push({topic:'Other sampled topics',...aggregate(remaining,baseline),other:true});
-  const lengthGroups=[
+  const wordCounts=new Map();
+  for(const v of unassigned)for(const w of words(v.title))wordCounts.set(w,(wordCounts.get(w)||0)+1);
+  const repeated=[...wordCounts].filter(([word,n])=>n>=2&&n<unassigned.length)
+    .sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,6);
+  const extra=new Set();
+  for(const [word] of repeated){
+    const matched=unassigned.filter(v=>!extra.has(v.id)&&words(v.title).includes(word));
+    if(matched.length<2)continue;
+    groups.set(word[0].toUpperCase()+word.slice(1),matched);
+    matched.forEach(v=>extra.add(v.id));
+  }
+  const other=unassigned.filter(v=>!extra.has(v.id));
+  const sorted=[...groups].filter(([_,items])=>items.length>=2)
+    .map(([topic,items])=>({topic,...groupStats(items,baseline)}))
+    .sort((a,b)=>(b.relativeMedian??-1)-(a.relativeMedian??-1)||b.count-a.count);
+  const selected=sorted.slice(0,5);
+  const retained=new Set(selected.map(x=>x.topic));
+  const notShown=[...other,...[...groups].filter(([name])=>!retained.has(name)).flatMap(x=>x[1])];
+  const themes=[...selected];
+  if(notShown.length)themes.push({topic:'Other sampled topics',other:true,...groupStats(notShown,baseline)});
+  const bins=[
     {id:'short-length',label:'Short-length (up to 3 min)',items:[]},
     {id:'longer',label:'Longer than 3 min',items:[]},
     {id:'unknown',label:'Unknown duration',items:[]}
   ];
-  rows.forEach(x=>{
-    const sec=videoSeconds(x.duration);
-    lengthGroups[sec===null?2:sec<=180?0:1].items.push(x);
-  });
-  const formats=lengthGroups.filter(g=>g.items.length).map(g=>({id:g.id,label:g.label,...aggregate(g.items,baseline)}));
-  const top=[...viewed].sort((a,b)=>b.views-a.views).slice(0,3).map(v=>({
-    id:v.id,title:v.title,views:v.views,url:v.url,publishedAt:v.publishedAt
-  }));
+  for(const v of videos){const sec=videoSeconds(v.duration);bins[sec===null?2:sec<=180?0:1].items.push(v);}
   return {
-    sampleSize:rows.length,viewCountAvailable:viewed.length,baselineMedian:baseline,
-    themes,formats,top,
+    sampleSize:videos.length,viewCountAvailable:publicViews.length,baselineMedian:baseline,
+    themes,formats:bins.filter(x=>x.items.length).map(x=>({id:x.id,label:x.label,...groupStats(x.items,baseline)})),
+    top:[...publicViews].sort((a,b)=>b.views-a.views).slice(0,3).map(clipVideo),
     warnings:[
-      'Views are cumulative totals at one snapshot, not same-age comparisons. Older uploads have had longer to collect views.',
-      'Video duration is not a reliable way to identify YouTube Shorts; short-length means duration only.',
-      'Small topic samples are exploratory. Public data cannot reveal CTR, retention, impressions, or causes of performance.'
+      'All view counts are cumulative at one snapshot. Comparing a future video at day 7 with these lifetime medians is invalid.',
+      'Video duration is not an official Shorts classification; short-length labels describe duration only.',
+      'Theme groups use public video titles and sample sizes; they do not measure retention, CTR, impressions, popularity trends or the cause of views.'
     ]
   };
 }
+const safeTitle=(name,max=52)=>tidy(name,max);
+export function comparisonPlan(){
+  return 'Record day-7 views for this upload. Compare only with other day-7 results in YouTube Studio, never with the lifetime medians above.';
+}
+export function evidenceForTopic(evidence,topic,preferredId){
+  const group=evidence.themes.find(x=>!x.other&&x.topic.toLowerCase()===String(topic).toLowerCase());
+  const options=group?.examples||evidence.top||[];
+  const selected=options.find(x=>x.id===preferredId)||options[0];
+  return {
+    topic:group?.topic||topic,
+    sampleCount:group?.count||0,
+    medianLifetimeViews:group?.medianViews??null,
+    sources:selected?[selected]:[],
+    why:group?
+      group.count+' sampled uploads share the "'+group.topic+'" topic (median '+(group.medianViews??'unknown')+' lifetime views). Try a different angle; this does not prove demand or future success.':
+      'Based on a real sampled upload; the sample does not establish a topic-level performance advantage.'
+  };
+}
 export function fallbackIdeas(evidence){
-  const meaningful=evidence.themes.filter(x=>!x.other&&x.count>=2);
-  const topics=meaningful.length?meaningful:[{topic:evidence.top[0]?.title||'your audience topic'}];
-  const first=toTopicTitle(topics[0].topic),second=toTopicTitle((topics[1]||topics[0]).topic);
-  return [
-    {title:first+' — a fresh angle',topic:first,hook:'Show what makes this new upload different in the opening moments.',
-      why:'Tests a new angle on a recurring topic in the sampled uploads.',measure:'Compare views at the same days since upload (for example day 7).'},
-    {title:second+' — a focused highlight',topic:second,hook:'Start with the most interesting real moment you can substantiate.',
-      why:'Tests a focused format around a topic visible in recent titles.',measure:'Track 7-day views and audience retention in YouTube Studio if available.'},
-    {title:first+' — live discussion or gameplay',topic:first,hook:'State the subject of the stream and what viewers can expect.',
-      why:'Tests a different packaging format without claiming a proven advantage.',measure:'Compare early views with other uploads of a similar length and age.'}
+  const topics=evidence.themes.filter(t=>!t.other&&t.count>=2);
+  const first=topics[0]?.topic||evidence.top[0]?.title||'your recent content';
+  const second=topics[1]?.topic||first;
+  const proposals=[
+    {topic:first,title:safeTitle(first)+' — a fresh follow-up',hook:'Explain what is different about this new upload in the first few seconds.'},
+    {topic:second,title:safeTitle(second)+' — a focused new episode',hook:'Open with the actual moment or question this upload will address.'},
+    {topic:first,title:safeTitle(first)+' — a new experiment',hook:'Tell viewers what you are testing, and show only what actually happens.'}
   ];
+  return proposals.map(p=>({...p,...evidenceForTopic(evidence,p.topic),measure:comparisonPlan()}));
 }
