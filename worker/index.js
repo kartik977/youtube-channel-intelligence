@@ -5,6 +5,7 @@ import { onRequestPost } from '../functions/api/advisor.js';
 import { onRequestPost as optimizeVideo } from '../functions/api/video-optimizer.js';
 import { onRequestGet as getVideo } from '../functions/api/video.js';
 import { onRequestPost as getOpportunities } from '../functions/api/opportunities.js';
+import { onRequestPost as instagramStudio } from '../functions/api/instagram.js';
 
 const json = (body, status) => new Response(JSON.stringify(body), {
   status,
@@ -50,6 +51,11 @@ export default {
     if (path === '/api/opportunities') {
       if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
       return getOpportunities({ request, env });
+    }
+
+    if (path === '/api/instagram') {
+      if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
+      return instagramStudio({request,env});
     }
 
     if (path.startsWith('/api/')) {
