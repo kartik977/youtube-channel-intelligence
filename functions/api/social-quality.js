@@ -111,7 +111,7 @@ export function freeYoutubeCopy(brief){
   // a recognizable sample, without repeating its sentence in the hook.
   const halloweenPlano=/halloween/i.test(scene)&&/\bplano\b/i.test(scene);
   const atHome=/\bhome\b|\bhouse\b/i.test(scene);
-  const headline=halloweenPlano&&atHome?'This Plano home is ready for Halloween — take a look!':null;
+  const headline=halloweenPlano&&atHome?'This Plano home is ready for Halloween — Take a look!':null;
   const opener={
     showcase:headline||'See what stands out in this '+(atHome?'home display':'short showcase')+'.',
     tutorial:'Ready to follow the steps? Start with '+truncate(scene,60)+'.',
