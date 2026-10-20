@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import {Instagram,Hash,UserRound,Copy,Check,Sparkles,Info,RefreshCw,AlertCircle,PenLine,ArrowRight,Heart,ShieldCheck} from 'lucide-react';
+import {Instagram,Hash,UserRound,Copy,Check,Sparkles,Info,RefreshCw,AlertCircle,PenLine,Heart,ShieldCheck,MessageSquareText} from 'lucide-react';
 import './instagram-studio.css';
 
 const tones=[
@@ -53,7 +53,7 @@ export default function InstagramStudio(){
         throw Error('Instagram Studio API has not deployed to Cloudflare yet.');
       const data=await res.json();
       if(!res.ok)throw Error(data.error||'Could not generate your suggestions.');
-      if(data.kind!==kind||!(kind==='bio'?Array.isArray(data.bios):Array.isArray(data.hashtags)))
+      if(data.kind!==kind||!(kind==='bio'?Array.isArray(data.bios):kind==='caption'?Array.isArray(data.captions):Array.isArray(data.hashtags)))
         throw Error('Generator returned an incomplete response.');
       setResult(data);
     }catch(e){setError(e.message||'Something went wrong.');}
@@ -67,14 +67,14 @@ export default function InstagramStudio(){
     <div className="page-heading ig-page-heading">
       <div className="eyebrow">INSTAGRAM CONTENT STUDIO ✦</div>
       <h1>Make your Instagram stand out<span className="accent">.</span></h1>
-      <p>Create a profile bio or relevant post and Reel hashtags from a description you provide. No Instagram login or YouTube channel required.</p>
+      <p>Write Instagram bios, captions and relevant hashtags from your own description. No Instagram login or YouTube channel required.</p>
     </div>
     <section className="ig-intro">
       <div className="ig-intro-logo"><Instagram size={27}/></div>
       <div>
         <small>YOUR IDEAS, MADE MORE SHAREABLE</small>
         <h2>Write once. Discover the right words.</h2>
-        <p>Get short bio options or hashtags that reflect your actual content, not unverified trends.</p>
+        <p>Draft profile bios, social captions and topic-specific hashtags in one place.</p>
       </div>
       <span><ShieldCheck size={15}/> Free-tier tools</span>
     </section>
@@ -85,18 +85,22 @@ export default function InstagramStudio(){
           <button type="button" className={kind==='bio'?'active':''} onClick={()=>changeKind('bio')}>
             <UserRound size={19}/> Instagram Bio <small>150-character profiles</small>
           </button>
+          <button type="button" className={kind==='caption'?'active':''} onClick={()=>changeKind('caption')}>
+            <MessageSquareText size={19}/> Caption Generator <small>Three styles + tags</small>
+          </button>
           <button type="button" className={kind==='hashtags'?'active':''} onClick={()=>changeKind('hashtags')}>
             <Hash size={19}/> Hashtag Generator <small>Posts & Reels</small>
           </button>
         </div>
         <form onSubmit={create}>
           <label htmlFor="ig-description">
-            {kind==='bio'?'Tell us about yourself or your brand':'Describe your post or Reel'} <span>Required</span>
+            {kind==='bio'?'Tell us about yourself or your brand':kind==='caption'?'Describe the photo or Reel you want to caption':'Describe your post or Reel'} <span>Required</span>
           </label>
           <textarea id="ig-description" value={description} onChange={e=>setDescription(e.target.value)}
             minLength={8} maxLength={850} required rows={6}
             placeholder={kind==='bio'?
               'I create PS5 gaming content, livestreams, and Cricket 26 highlights. I love sharing fun moments and connecting with gamers.':
+              kind==='caption'?'A Halloween decoration display in Plano, with orange lights and spooky pumpkins outside a house.':
               'A sunset photo from my road trip through California, with ocean views, golden light and peaceful scenery.'}/>
           <div className="ig-input-meta"><span>Give a few specifics for better suggestions</span><span>{description.length}/850</span></div>
           {kind==='bio'?<>
@@ -125,23 +129,24 @@ export default function InstagramStudio(){
           <p className="ig-privacy"><Info size={15}/> Your description is used to generate suggestions. If Groq is available, it's sent to Groq for drafting. This page doesn't connect to your Instagram account or publish anything.</p>
           <button className="primary-btn ig-generate" type="submit" disabled={busy}>
             {busy?<RefreshCw size={17} className="spin"/>:<Sparkles size={17}/>}
-            {busy?'Writing suggestions…':result?'Regenerate suggestions':kind==='bio'?'Generate Instagram bios':'Find relevant hashtags'}
+            {busy?'Writing suggestions…':result?'Regenerate suggestions':kind==='bio'?'Generate Instagram bios':kind==='caption'?'Generate Instagram captions':'Find relevant hashtags'}
           </button>
         </form>
       </section>
       <section className="ig-output">
         <div className="ig-output-top"><div><small>{kind==='bio'?'YOUR PROFILE':'YOUR POST OR REEL'}</small>
-          <h2>{kind==='bio'?'Instagram Bio Ideas':'Hashtags for Your Content'}</h2></div>
+          <h2>{kind==='bio'?'Instagram Bio Ideas':kind==='caption'?'Instagram Caption Ideas':'Hashtags for Your Content'}</h2></div>
           {result&&<span className={'ig-status '+(result.mode==='ai'?'ai':'')}>
             {result.mode==='ai'?'AI-GENERATED':result.mode==='hybrid'?'AI + TEMPLATES':'FREE DRAFT MODE'}
           </span>}
         </div>
         {error&&<p className="error" role="alert"><AlertCircle size={18}/>{error}</p>}
         {!result&&!busy&&<div className="ig-empty">
-          {kind==='bio'?<UserRound size={36}/>:<Hash size={38}/>}
-          <h3>{kind==='bio'?'Your next bio starts here':'Make your hashtags more specific'}</h3>
+          {kind==='bio'?<UserRound size={36}/>:kind==='caption'?<MessageSquareText size={36}/>:<Hash size={38}/>}
+          <h3>{kind==='bio'?'Your next bio starts here':kind==='caption'?'Find the words for your next post':'Make your hashtags more specific'}</h3>
           <p>{kind==='bio'?
             'Tell us who you are and what you post to get three short, copy-ready bio options.':
+            kind==='caption'?'Describe the actual photo or video to get three original captions, plus hashtags you can copy.':
             'Describe your content and get a focused group of hashtags with reasons for each.'}</p>
           <div><span><Check size={14}/> No login</span><span><Check size={14}/> One-click copy</span></div>
         </div>}
@@ -156,6 +161,21 @@ export default function InstagramStudio(){
             <CopyButton value={bio.text} label="Copy bio" onError={setError}/>
           </article>)}
           <p className="ig-tip"><Heart size={16}/> Make it yours: double-check any claims and edit the copy before pasting into Instagram.</p>
+        </div>}
+        {result?.kind==='caption'&&<div className="ig-results">
+          <p className="ig-result-lead">Three editable caption drafts. Each is based on your description, not an analysis of uploaded images or video footage.</p>
+          {result.captions.map((caption,i)=><article className="ig-caption-card" key={i}>
+            <div className="ig-bio-header"><strong><span>0{i+1}</span> {caption.label}</strong>
+              <span className="ig-char-count">{Array.from(caption.text).length} characters</span></div>
+            <p className="ig-caption-text">{caption.text}</p>
+            {caption.hashtags?.length>0&&<div className="ig-caption-tags">{caption.hashtags.map(t=><span key={t}>{t}</span>)}</div>}
+            <div className="ig-caption-actions">
+              <CopyButton value={caption.text} label="Copy caption" onError={setError}/>
+              <CopyButton value={[caption.text,(caption.hashtags||[]).join(' ')].filter(Boolean).join('\n\n')}
+                label="Copy caption + hashtags" onError={setError}/>
+            </div>
+          </article>)}
+          <p className="ig-tip"><Info size={16}/> Check the caption against your actual image or Reel, especially any location, event or activity claims.</p>
         </div>}
         {result?.kind==='hashtags'&&<div className="ig-results">
           <div className="ig-hashtag-heading"><h3><Hash size={18}/> Suggested hashtags</h3>
