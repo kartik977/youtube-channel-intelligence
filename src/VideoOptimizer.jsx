@@ -36,9 +36,9 @@ function CopyButton({content,label='Copy',onError}) {
     {copied?<Check size={14}/>:<Copy size={14}/>} {copied?'Copied':label}
   </button>;
 }
-export default function VideoOptimizer({data}) {
+export default function VideoOptimizer({data,initialTopic=''}) {
   const [kind,setKind]=useState('video');
-  const [topic,setTopic]=useState('');
+  const [topic,setTopic]=useState(initialTopic);
   const [description,setDescription]=useState('');
   const [audience,setAudience]=useState('');
   const [tone,setTone]=useState('clear');
