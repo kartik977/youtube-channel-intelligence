@@ -16,6 +16,7 @@ import OpportunityFinder from './OpportunityFinder';
 import InstagramStudio from './InstagramStudio';
 import SocialPublishing from './SocialPublishing';
 import ContentCalendar from './ContentCalendar';
+import {ideaToOptimizerDraft} from './calendar-optimizer.js';
 import './styles.css';
 
 const tabs = [
@@ -231,7 +232,13 @@ function App(){
   const model = useMemo(()=>analyze(data),[data]);
   const switchTab = id => {setTab(id);setMenu(false);};
   function useOpportunity(idea) {
-    setOptimizerDraft(prev=>({title:idea.title,version:prev.version+1}));
+    setOptimizerDraft(prev=>({title:idea.title,description:'',audience:'',kind:'video',
+      origin:'opportunity',version:prev.version+1}));
+    switchTab('optimizer');
+  }
+  function useCalendarIdea(slot,config) {
+    const draft=ideaToOptimizerDraft(slot,config);
+    setOptimizerDraft(prev=>({...draft,version:prev.version+1}));
     switchTab('optimizer');
   }
   async function submit(e) {
@@ -252,24 +259,24 @@ function App(){
     {menu && <button className="mobile-overlay" aria-label="Close navigation" onClick={()=>setMenu(false)}/>}
     <main className="main">
       <header className="topbar"><div className="crumb"><button className="mobile-menu" onClick={()=>setMenu(v=>!v)} aria-label="Menu">{menu?<X/>:<Menu/>}</button>Workspace <span>/</span><strong>{tabs.find(t=>t.id===tab).label}</strong></div>
-        <span className="source-indicator"><span className="status-dot"/>{['instagram','social','calendar'].includes(tab)?'NO LOGIN NEEDED':data.source==='demo'?'DEMO DATA':'PUBLIC YOUTUBE DATA'}</span></header>
+        <span className="source-indicator"><span className="status-dot"/>{['instagram','social','calendar'].includes(tab)?'NO LOGIN NEEDED':tab==='optimizer'&&optimizerDraft.origin==='calendar'?'PLANNED SHORT DRAFT':data.source==='demo'?'DEMO DATA':'PUBLIC YOUTUBE DATA'}</span></header>
       <div className="content">
-        {!['instagram','social','calendar'].includes(tab)&&<div className="search-row"><form className="search-form" onSubmit={submit}><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)}
+        {!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&<div className="search-row"><form className="search-form" onSubmit={submit}><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)}
           aria-label="Channel handle or URL" placeholder="Enter @channelhandle or YouTube channel URL" required/>
           <button className="primary-btn" disabled={busy}>{busy?<RefreshCw size={16} className="spin"/>:<ArrowRight size={16}/>} {busy?'Analyzing…':'Analyze channel'}</button></form>
           <button className="outline-btn" onClick={showDemo}><Play size={14}/>Try demo</button></div>}
         {error && <div className="error"><AlertCircle size={18}/><span>{error}</span><button onClick={()=>setError('')} aria-label="Dismiss"><X size={16}/></button></div>}
-        {!['instagram','social','calendar'].includes(tab)&&data.source==='demo' && <p className="demo-banner"><Info size={16}/> You're viewing <strong>fictional demo data.</strong> Connect your YouTube API key to explore real public channel metrics.</p>}
+        {!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&data.source==='demo' && <p className="demo-banner"><Info size={16}/> You're viewing <strong>fictional demo data.</strong> Connect your YouTube API key to explore real public channel metrics.</p>}
         {tab==='overview'&&<Overview data={data} model={model} showVideos={()=>switchTab('videos')}/>}
         {tab==='videos'&&<VideoLibrary data={data}/>}
         {tab==='compare'&&<Comparison key={data.channel.id} data={data} model={model}/>}
         {tab==='insights'&&<Insights data={data} model={model}/>}
         {tab==='advisor'&&<Advisor key={data.channel.id + ':' + data.fetchedAt} data={data}/>}
-        {tab==='optimizer'&&<VideoOptimizer key={data.channel.id + ':' + optimizerDraft.version} data={data} initialTopic={optimizerDraft.title}/>}
+        {tab==='optimizer'&&<VideoOptimizer key={data.channel.id + ':' + optimizerDraft.version} data={optimizerDraft.origin==='calendar'?{source:'calendar',channel:{},videos:[]}:data} initialDraft={optimizerDraft} initialTopic={optimizerDraft.title}/>}
         {tab==='opportunities'&&<OpportunityFinder key={data.channel.id + ':' + data.fetchedAt} data={data} onUseIdea={useOpportunity}/>}
         {tab==='instagram'&&<InstagramStudio/>}
         {tab==='social'&&<SocialPublishing/>}
-        {tab==='calendar'&&<ContentCalendar/>}
+        {tab==='calendar'&&<ContentCalendar onUseIdea={useCalendarIdea}/>}
         <footer><span>ChannelScope · Independent creator tools</span><span>{tab==='calendar'?'Draft content calendar · No scheduling, publishing or account connection':tab==='social'?'Instagram + YouTube Shorts drafts only · No account connection or posting · Independent creator tools':tab==='instagram'?'Instagram drafts only · No posting or account connection · Not affiliated with Instagram':(data.source==='demo'?'Fictional example':'Fetched '+day(data.fetchedAt))+' · Public YouTube data · Not affiliated with YouTube'}</span></footer>
       </div>
     </main>
