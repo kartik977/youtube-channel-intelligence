@@ -1,0 +1,131 @@
+// Offline-friendly content planning: no trend, analytics, or posting claims.
+// Dates are a user-chosen cadence, never a prediction of the best time to post.
+const goals=new Set(['consistency','engagement','growth','education']);
+const platforms=new Set(['both','instagram','youtube']);
+const frequencies=new Set([2,3,5]);
+const horizons=new Set([7,30]);
+const clean=(v,max=220)=>typeof v==='string'?v.replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim().slice(0,max):'';
+const pad=n=>String(n).padStart(2,'0');
+function dateUTC(iso){
+  if(typeof iso!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(iso))return null;
+  const y=+iso.slice(0,4),m=+iso.slice(5,7),d=+iso.slice(8,10);
+  if(y<2020||y>2100)return null;
+  const date=new Date(Date.UTC(y,m-1,d));
+  if(date.getUTCFullYear()!==y||date.getUTCMonth()!==m-1||date.getUTCDate()!==d)return null;
+  return date;
+}
+const isoDay=d=>d.toISOString().slice(0,10);
+const addDays=(day,amount)=>new Date(day.getTime()+amount*86400000);
+export function normalizeCalendarBrief(raw){
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('Describe the niche you create content about.');
+  const niche=clean(raw.niche,180),audience=clean(raw.audience,120);
+  const goal=clean(raw.goal,20)||'consistency';
+  const platform=clean(raw.platform,20)||'both';
+  const days=Number(raw.days),perWeek=Number(raw.perWeek);
+  const startDate=clean(raw.startDate,10);
+  if(niche.length<8)throw Error('Describe your niche in at least 8 characters.');
+  if(!goals.has(goal))throw Error('Choose an available creator goal.');
+  if(!platforms.has(platform))throw Error('Choose Instagram, YouTube, or both platforms.');
+  if(!horizons.has(days))throw Error('Choose a 7-day or 30-day calendar.');
+  if(!frequencies.has(perWeek))throw Error('Choose 2, 3, or 5 posts each week.');
+  if(!dateUTC(startDate))throw Error('Choose a valid calendar start date.');
+  return {niche,audience,goal,platform,days,perWeek,startDate};
+}
+const goalNotes={
+  consistency:'Build a posting rhythm you can maintain; a schedule alone does not cause growth.',
+  engagement:'Invite a genuine response without promising additional reach or views.',
+  growth:'Test fresh ways to present your niche; no ideas are guaranteed to grow your account.',
+  education:'Share verifiable observations and explain only what you can substantiate.'
+};
+const signatures=[
+  {pillar:'Spotlight',angle:'Spotlight one real detail',action:'Pick one detail you can show or explain accurately.',hook:'Here is one detail worth noticing.',cta:'What stands out to you?'},
+  {pillar:'Question',angle:'Ask an interesting niche question',action:'Frame an honest question and let viewers share their answers.',hook:'What would you choose here?',cta:'Share your answer below.'},
+  {pillar:'Quick take',angle:'Share one observation',action:'Describe one observation based on something you actually know.',hook:'Here is one thing I noticed.',cta:'Do you see it the same way?'},
+  {pillar:'Focused moment',angle:'Showcase one specific moment',action:'Plan to capture one authentic moment rather than inventing a highlight.',hook:'Watch this moment closely.',cta:'Which part caught your attention?'},
+  {pillar:'Common question',angle:'Answer one frequently asked question',action:'Choose a question you really understand and give a grounded answer.',hook:'Here is one useful answer.',cta:'What would you ask next?'},
+  {pillar:'Mini series',angle:'Start a two-part content series',action:'Outline one focused topic now and a distinct follow-up for later.',hook:'Here is part one of a short series.',cta:'Would you like a follow-up?'},
+  {pillar:'Compare',angle:'Explore two approaches',action:'Only compare aspects you can actually demonstrate or verify.',hook:'Let us look at two options.',cta:'Which approach would you try?'},
+  {pillar:'Behind the plan',angle:'Explain how you planned the idea',action:'Share a truthful look at the process or preparation if available.',hook:'Here is how this idea came together.',cta:'What would you plan differently?'},
+  {pillar:'Checklist',angle:'Create a practical checklist',action:'Offer a short list of steps or criteria based on real expertise.',hook:'Here are a few things to check.',cta:'What would you add?'},
+  {pillar:'Opinion poll',angle:'Invite a friendly opinion',action:'Use one concrete question tied to your niche; avoid claims of a proven winner.',hook:'I am curious what you think about this.',cta:'Tell me your take.'},
+  {pillar:'Myth or fact',angle:'Clarify one common misconception',action:'Only present a myth/fact distinction if you can verify both sides.',hook:'There is a detail worth double-checking.',cta:'Have you encountered this?'},
+  {pillar:'Recap',angle:'Recap what you have actually shown',action:'Summarize real clips or points available in your own material.',hook:'Here is a quick recap.',cta:'Which moment should come next?'}
+];
+const daysOfWeek={
+  2:[0,3],
+  3:[0,2,4],
+  5:[0,1,3,4,6]
+};
+function platformFor(index,choice){
+  if(choice==='instagram')return 'Instagram Reel';
+  if(choice==='youtube')return 'YouTube Short';
+  return index%2===0?'Instagram Reel':'YouTube Short';
+}
+export function createContentCalendar(raw,variant=0){
+  const config=normalizeCalendarBrief(raw),start=dateUTC(config.startDate);
+  const slots=[];
+  let idx=0;
+  for(let offset=0;offset<config.days;offset++){
+    if(!daysOfWeek[config.perWeek].includes(offset%7))continue;
+    const rotation=(idx+(Number.isInteger(variant)&&variant>=0?variant:0))%signatures.length;
+    const sig=signatures[rotation];
+    const platform=platformFor(idx,config.platform);
+    const date=isoDay(addDays(start,offset));
+    const subject=config.niche;
+    const subjectTitle=subject.length>58?subject.slice(0,55)+'…':subject;
+    const title=subjectTitle+' — '+sig.angle;
+    const note=config.goal==='education'?
+      'Keep the claim verifiable and make the takeaway clear.':config.goal==='engagement'?
+      'Ask a genuine question and engage with responses.':config.goal==='growth'?
+      'Test this angle against other content of similar age; results are uncertain.':
+      'Choose a scope you can produce on schedule.';
+    slots.push({
+      id:'slot-'+offset,date,dayOffset:offset,week:Math.floor(offset/7)+1,
+      platform,title,idea:sig.action,hook:sig.hook+' Topic: '+subjectTitle+'.',
+      callToAction:sig.cta,pillar:sig.pillar,
+      goalNote:note,status:'planned'
+    });
+    idx++;
+  }
+  return {
+    config,goalNote:goalNotes[config.goal],slots,
+    stats:{scheduled:slots.length,instagram:slots.filter(x=>x.platform==='Instagram Reel').length,
+      youtube:slots.filter(x=>x.platform==='YouTube Short').length,days:config.days},
+    note:'This is a draft planning calendar, not an optimized posting-time recommendation. The ideas describe future content to create, not existing footage.'
+  };
+}
+export function calendarToText(plan){
+  return [
+    'ChannelScope Content Calendar',plan.config.days+' days · '+plan.config.niche,
+    plan.stats.scheduled+' draft content ideas', '',
+    ...plan.slots.map(slot=>[
+      slot.date+' | '+slot.platform+' | '+slot.title,
+      'Concept: '+slot.idea,
+      'Hook: '+slot.hook,
+      'CTA: '+slot.callToAction,
+      'Status: '+slot.status,''
+    ].join('\n'))
+  ].join('\n');
+}
+const icsEscape=value=>String(value).replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+export function calendarToICS(plan){
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//ChannelScope//Creator Content Calendar//EN',
+    'CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  for(const slot of plan.slots){
+    const next=addDays(dateUTC(slot.date),1);
+    const start=slot.date.replace(/-/g,''),end=isoDay(next).replace(/-/g,'');
+    lines.push('BEGIN:VEVENT','UID:channelscope-'+start+'-'+slot.id+'@calendar.local',
+      'DTSTAMP:'+start+'T120000Z','DTSTART;VALUE=DATE:'+start,'DTEND;VALUE=DATE:'+end,
+      'SUMMARY:'+icsEscape(slot.platform+': '+slot.title),
+      'DESCRIPTION:'+icsEscape([slot.idea,'Hook: '+slot.hook,'CTA: '+slot.callToAction,
+        'Draft task only — does not publish or set a best posting time.'].join('\n')),
+      'END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n')+'\r\n';
+}
+export function calendarToCSV(plan){
+  const fields=['date','platform','title','pillar','idea','hook','callToAction','status'];
+  const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';
+  return [fields.map(q).join(','),...plan.slots.map(s=>fields.map(k=>q(s[k])).join(','))].join('\r\n')+'\r\n';
+}
