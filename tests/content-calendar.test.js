@@ -25,7 +25,7 @@ test('A seven-day plan at 3 posts/week is spaced and alternates platforms',()=>{
   assert.deepEqual(plan.slots.map(x=>x.platform),['Instagram Reel','YouTube Short','Instagram Reel']);
   assert.equal(plan.stats.instagram,2);
   assert.equal(plan.stats.youtube,1);
-  assert.ok(plan.slots.every(x=>x.title.includes(config.niche)));
+  assert.ok(plan.slots.every(x=>/PS5|Cricket 26/.test(x.title)));
   assert.ok(plan.slots.every(x=>x.hook&&x.idea&&x.callToAction&&x.goalNote));
   assert.ok(plan.slots.every(x=>x.status==='planned'));
   assert.match(plan.note,/not an optimized posting-time recommendation/);
@@ -55,7 +55,7 @@ test('Fresh angles are distinct and remain within the same niche',()=>{
   const first=createContentCalendar(config),next=createContentCalendar(config,1);
   assert.notEqual(first.slots[0].title,next.slots[0].title);
   assert.equal(first.slots[0].date,next.slots[0].date);
-  assert.ok(next.slots.every(s=>s.title.includes(config.niche)));
+  assert.ok(next.slots.every(s=>/PS5|Cricket 26/.test(s.title)));
 });
 test('CSV correctly quotes commas and ICS uses all-day dates without posting times',()=>{
   const plan=createContentCalendar({...config,niche:'Travel, food and local experiences'});
@@ -104,4 +104,42 @@ test('AI repeating the description as its hook is replaced by the distinct fallb
   assert.equal(result.youtube.description,repeated);
   assert.equal(result.youtube.hook,backup.youtube.hook);
   assert.ok(nearDuplicateCopy(repeated,repeated));
+});
+
+
+test('PS5 Different Games screenshot brief gets three different actionable gaming Shorts',()=>{
+  const p=createContentCalendar({
+    niche:'PS5 Gaming. Different Games',audience:'Gaming Audience',goal:'consistency',
+    platform:'youtube',days:7,perWeek:3,startDate:'2026-10-21'
+  });
+  assert.deepEqual(p.slots.map(x=>x.date),['2026-10-21','2026-10-23','2026-10-25']);
+  assert.deepEqual(p.slots.map(x=>x.platform),['YouTube Short','YouTube Short','YouTube Short']);
+  assert.match(p.slots[0].title,/which PS5 game has the best opening/i);
+  assert.match(p.slots[1].title,/one challenge, two PS5 games/i);
+  assert.match(p.slots[2].title,/choose my next PS5 game/i);
+  assert.equal(new Set(p.slots.map(x=>x.title)).size,3);
+  for(const slot of p.slots){
+    assert.ok(slot.idea.length>=85);
+    assert.ok(slot.hook.length>=25);
+    assert.doesNotMatch(slot.hook,/Topic:|here is one detail|worth noticing/i);
+    assert.doesNotMatch(slot.title,/different games — spotlight|share one observation/i);
+    assert.ok(slot.callToAction);
+  }
+});
+test('Fallback niches get their own usable angles, not generic Spotlight templates',()=>{
+  const cases=[
+    ['travel photography around Japan','travel'],
+    ['quick recipes and home cooking','food'],
+    ['strength workouts for beginners','fitness'],
+    ['software engineering with Python','tech'],
+    ['skincare and fashion outfits','lifestyle'],
+    ['collectible book reviews','general']
+  ];
+  for(const [niche] of cases){
+    const p=createContentCalendar({...config,niche});
+    assert.equal(p.slots.length,3);
+    assert.equal(new Set(p.slots.map(x=>x.title)).size,3);
+    assert.ok(p.slots.some(x=>x.title.toLowerCase().includes(niche.slice(0,12).toLowerCase())));
+    assert.ok(p.slots.every(x=>!x.hook.includes('Topic:')));
+  }
 });
