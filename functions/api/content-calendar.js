@@ -41,13 +41,13 @@ function parseGroqIdeas(raw){
   }
 }
 const categoryTitle={
-  gaming:/\\b(?:game|games|gaming|gameplay|play|challenge|compare|comparison|opening|strategy|mission|level|match|controller|console|ps[345]|xbox|cricket|minecraft|fortnite|fifa)\\b/i,
-  travel:/\\b(?:travel|trip|city|tour|destination|route|scenic|view|journey|visit)\\b/i,
-  food:/\\b(?:food|recipe|cook|taste|meal|ingredient|bake|kitchen)\\b/i,
-  fitness:/\\b(?:fitness|workout|gym|exercise|training|running|movement)\\b/i,
-  tech:/\\b(?:tech|app|code|coding|software|python|debug|tool|feature|developer)\\b/i,
-  lifestyle:/\\b(?:fashion|outfit|style|makeup|skin|beauty|routine|look)\\b/i,
-  general:/\\b(?:challenge|compare|story|experience|question|review|spotlight|try|guide|show)\\b/i
+  gaming:/\b(?:game|games|gaming|gameplay|play|challenge|compare|comparison|opening|strategy|mission|level|match|controller|console|ps[345]|xbox|cricket|minecraft|fortnite|fifa)\b/i,
+  travel:/\b(?:travel|trip|city|tour|destination|route|scenic|view|journey|visit)\b/i,
+  food:/\b(?:food|recipe|cook|taste|meal|ingredient|bake|kitchen)\b/i,
+  fitness:/\b(?:fitness|workout|gym|exercise|training|running|movement)\b/i,
+  tech:/\b(?:tech|app|code|coding|software|python|debug|tool|feature|developer)\b/i,
+  lifestyle:/\b(?:fashion|outfit|style|makeup|skin|beauty|routine|look)\b/i,
+  general:/\b(?:challenge|compare|story|experience|question|review|spotlight|try|guide|show)\b/i
 };
 export function validateAIPlan(payload,plan){
   if(!Array.isArray(payload?.ideas))throw Error('incomplete');
