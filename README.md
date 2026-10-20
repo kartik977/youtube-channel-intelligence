@@ -338,3 +338,12 @@ ChannelScope now applies an ambient background theme automatically from the sele
 The atmospheric effect is made entirely with lightweight **CSS radial gradients**, a faint non-interactive grid texture near the top of each page, and scoped accent colors in the active sidebar/breadcrumb. It does not require external images, expensive motion, additional network requests or new packages. The textured overlay cannot intercept clicks; mobile uses scaled-down gradients, and reduced-transparency preferences hide the texture and retain an opaque toolbar.
 
 Page deep links, Calendar → Optimizer handoff, and YouTube/Instagram/Creator Tools navigation continue to work.
+
+
+### First-time Welcome Home
+
+Opening the website at its base URL (with no hash) now displays a dedicated **Discover ChannelScope** landing page instead of opening fictional YouTube analytics immediately. The page explains the three existing workspaces and provides direct entry buttons for **YouTube**, **Instagram Studio**, and shared **Creator Tools**. Quick-start links can open fictional YouTube demo data or the Content Calendar with no account connection.
+
+The ChannelScope brand and new **Discover ChannelScope** sidebar link return to the welcome page (`#/home`). Direct deep links to all existing tools remain unchanged, including `#/youtube/overview`, `#/instagram/studio`, and `#/creator/content-calendar`. Browser back/forward works through the existing hash navigation. Explicit URLs are never redirected away from their chosen workspace.
+
+The **Creator Tools** sidebar heading now reads **Shared Tools** instead of the duplicated "Creator Tools Tools" label. The homepage does not display public-metrics search, fictitious channel counts, or the demo warning until the user intentionally enters the YouTube workspace. There are no new APIs, credentials, dependencies, cookies, analytics, or auto-publishing actions.
