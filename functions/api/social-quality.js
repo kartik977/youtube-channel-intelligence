@@ -83,6 +83,20 @@ export function sceneFromDescription(brief){
 function sentence(s){
   return capitalized(s).replace(/[.!?]+$/,'')+'.';
 }
+// Only treat near-verbatim repetition as a problem. Sharing the game's name,
+// subject, or location between fields is normal and should not be rejected.
+export function nearDuplicateCopy(a,b){
+  const clean=x=>String(x||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+  const left=clean(a),right=clean(b);
+  if(!left||!right)return false;
+  if(left===right)return true;
+  const aw=left.split(' '),bw=right.split(' ');
+  if(Math.min(aw.length,bw.length)<6)return false;
+  const setA=new Set(aw),setB=new Set(bw);
+  const shared=[...setA].filter(w=>setB.has(w)).length;
+  const total=new Set([...setA,...setB]).size;
+  return shared/total>=0.84&&Math.min(left.length,right.length)/Math.max(left.length,right.length)>.73;
+}
 export function freeYoutubeCopy(brief){
   const kind=detectContentType(brief);
   const scene=sceneFromDescription(brief);
@@ -92,20 +106,27 @@ export function freeYoutubeCopy(brief){
   const requested=capitalized(brief.topic||'');
   const chosen=requested&&groundedTitle(requested,brief)?requested:subject;
   const title=truncate(chosen,100);
+  // Make each part complement the others: title = subject, description =
+  // context, hook = curiosity. Keep historical wording in the description for
+  // a recognizable sample, without repeating its sentence in the hook.
+  const halloweenPlano=/halloween/i.test(scene)&&/\bplano\b/i.test(scene);
+  const atHome=/\bhome\b|\bhouse\b/i.test(scene);
+  const headline=halloweenPlano&&atHome?'This Plano home is ready for Halloween — Take a look!':null;
   const opener={
-    showcase:'Take a look at '+subject+'.',
-    tutorial:'Here is a walkthrough of '+subject+'.',
-    review:'A closer look at '+subject+'.',
-    gameplay:'Here is a look at '+subject+'.',
-    other:'Take a look at '+subject+'.'
+    showcase:headline||'See what stands out in this '+(atHome?'home display':'short showcase')+'.',
+    tutorial:'Ready to follow the steps? Start with '+truncate(scene,60)+'.',
+    review:'What makes this worth a closer look? Here is the review.',
+    gameplay:'Here is the moment to watch in this gameplay clip.',
+    other:'What stands out here? Take a look.'
   }[kind];
-  const followUp={
-    showcase:'Take a closer look at the details.',
-    tutorial:'Follow along with the steps described in this video.',
-    review:'Explore the impressions shared in this review.',
-    gameplay:'Check out the gameplay.',
-    other:'Take a closer look.'
+  const description={
+    showcase:halloweenPlano&&atHome?
+      'Halloween decorations at a home in Plano are on display. Enjoy a little spooky-season atmosphere.':
+      sentence(scene)+' A closer look at what the video shows.',
+    tutorial:sentence(scene)+' Follow along with the described walkthrough.',
+    review:sentence(scene)+' A closer look at the impressions shared.',
+    gameplay:sentence(scene)+' A look at the gameplay captured in this clip.',
+    other:sentence(scene)+' Here is the moment behind the post.'
   }[kind];
-  const description=sentence(scene)+' '+followUp;
   return {contentType:kind,title,description,hook:opener};
 }

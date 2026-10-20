@@ -7,6 +7,7 @@ import { onRequestGet as getVideo } from '../functions/api/video.js';
 import { onRequestPost as getOpportunities } from '../functions/api/opportunities.js';
 import { onRequestPost as instagramStudio } from '../functions/api/instagram.js';
 import { onRequestPost as socialPack } from '../functions/api/social-pack.js';
+import { onRequestPost as creatorCalendar } from '../functions/api/content-calendar.js';
 
 const json = (body, status) => new Response(JSON.stringify(body), {
   status,
@@ -62,6 +63,11 @@ export default {
     if (path === '/api/social-pack') {
       if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
       return socialPack({request,env});
+    }
+
+    if (path === '/api/content-calendar') {
+      if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
+      return creatorCalendar({request,env});
     }
 
     if (path.startsWith('/api/')) {
