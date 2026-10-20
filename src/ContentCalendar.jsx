@@ -34,6 +34,7 @@ export default function ContentCalendar(){
   const [plan,setPlan]=useState(null);
   const [variation,setVariation]=useState(0);
   const [error,setError]=useState('');
+  const [busy,setBusy]=useState(false);
   const [copied,setCopied]=useState(false);
   const grouped=useMemo(()=>plan?Object.entries(plan.slots.reduce((acc,item)=>{
     const key='Week '+item.week;
@@ -42,20 +43,38 @@ export default function ContentCalendar(){
   },{})):[],[plan]);
   const completed=plan?.slots.filter(x=>x.status==='done').length||0;
   const cfg=()=>({niche,audience,goal,platform,days,perWeek,startDate});
+  async function loadCalendar(nextVariation){
+    if(busy)return;
+    setError('');setCopied(false);setBusy(true);
+    try{
+      // Validate locally before requesting optional Groq personalization.
+      const baseline=createContentCalendar(cfg(),nextVariation);
+      const response=await fetch('/api/content-calendar',{
+        method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({...baseline.config,variant:nextVariation})
+      });
+      if(!response.headers.get('content-type')?.includes('application/json'))
+        throw Error('Calendar generation API is not deployed yet.');
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||'Calendar service unavailable.');
+      if(!Array.isArray(result.slots)||result.slots.length!==baseline.slots.length)
+        throw Error('Incomplete calendar response.');
+      setPlan(result);
+    }catch(e){
+      try{
+        const backup=createContentCalendar(cfg(),nextVariation);
+        setPlan({...backup,mode:'free',note:'Free calendar templates. AI idea generation was unavailable; the dates and prompts are still ready to use.'});
+        setError('AI suggestions were unavailable; showing the free calendar instead.');
+      }catch(validationError){setError(validationError.message||'Please check your settings.');}
+    }finally{setBusy(false);}
+  }
   function generate(e){
     e?.preventDefault?.();
-    setError('');setCopied(false);
-    try{
-      const result=createContentCalendar(cfg(),variation);
-      setPlan(result);
-    }catch(e){setError(e.message||'Please check your plan settings.');}
+    loadCalendar(variation);
   }
   function regenerate(){
-    setError('');setCopied(false);
-    try{
-      const value=variation+1;setVariation(value);
-      setPlan(createContentCalendar(cfg(),value));
-    }catch(e){setError(e.message||'Could not regenerate the plan.');}
+    const value=variation+1;setVariation(value);
+    loadCalendar(value);
   }
   async function copy(){
     try{await navigator.clipboard.writeText(calendarToText(plan));setCopied(true);}
@@ -83,7 +102,7 @@ export default function ContentCalendar(){
       <div className="cc-hero-icon"><CalendarDays size={27}/></div>
       <div><small>CONTENT CALENDAR</small><h2>More consistency. Less guesswork.</h2>
         <p>Get themed content prompts and a cadence you choose—without assuming the algorithm's favorite posting days.</p></div>
-      <span><Check size={15}/> Free · No login</span>
+      <span><Check size={15}/> Free · Optional AI</span>
     </div>
     <div className="cc-layout">
       <section className="cc-editor">
@@ -115,15 +134,17 @@ export default function ContentCalendar(){
           <input id="cc-start" type="date" min="2020-01-01" max="2100-12-31"
             required value={startDate} onChange={e=>setStartDate(e.target.value)}/>
           <p className="cc-hint"><Info size={15}/> The schedule starts on your chosen date. Suggested days are evenly spaced, not optimized or guaranteed to improve reach.</p>
-          <button type="submit" className="primary-btn cc-generate">
-            <CalendarCheck size={17}/> {plan?'Update my calendar':'Generate content calendar'} <ArrowRight size={16}/>
+          <button type="submit" disabled={busy} className="primary-btn cc-generate">
+            {busy?<RefreshCw size={17} className="spin"/>:<CalendarCheck size={17}/>}
+            {busy?'Creating calendar…':plan?'Update my calendar':'Generate content calendar'}
+            {!busy&&<ArrowRight size={16}/>}
           </button>
         </form>
       </section>
       <section className="cc-output">
         <div className="cc-output-head">
           <div><small>YOUR NEXT CONTENT</small><h2>Publishing calendar</h2></div>
-          {plan&&<span className="cc-free">FREE PLANNER</span>}
+          {plan&&<span className="cc-free">{plan.mode==='ai'?'AI-GENERATED':plan.mode==='hybrid'?'AI + TEMPLATES':'FREE PLANNER'}</span>}
         </div>
         {error&&<p className="error" role="alert">{error}</p>}
         {!plan&&<div className="cc-empty">
@@ -141,7 +162,7 @@ export default function ContentCalendar(){
           </div>
           <p className="cc-goal-note"><Target size={16}/>{plan.goalNote}</p>
           <div className="cc-tools">
-            <button type="button" className="cc-tool" onClick={regenerate}><RefreshCw size={15}/> Fresh angles</button>
+            <button type="button" disabled={busy} className="cc-tool" onClick={regenerate}><RefreshCw size={15} className={busy?'spin':''}/> {busy?'Thinking…':'Fresh angles'}</button>
             <button type="button" className="cc-tool" onClick={copy}>{copied?<Check size={15}/>:<Copy size={15}/>} {copied?'Copied':'Copy plan'}</button>
             <button type="button" className="cc-tool" onClick={()=>exportFile('ics')}><CalendarDays size={15}/> Download .ics</button>
             <button type="button" className="cc-tool" onClick={()=>exportFile('csv')}><FileDown size={15}/> Download CSV</button>
@@ -169,7 +190,7 @@ export default function ContentCalendar(){
               </article>)}</div>
             </section>)}
           </div>
-          <p className="cc-disclaimer"><Info size={16}/>{plan.note} Marked completions are held only on this page and are not saved after refresh. Export your plan if you want to keep it.</p>
+          <p className="cc-disclaimer"><Info size={16}/>{plan.note} Marked completions are held only on this page and are not saved after refresh. When AI is available, your niche and audience are sent to Groq. Export your plan if you want to keep it.</p>
         </>}
       </section>
     </div>
