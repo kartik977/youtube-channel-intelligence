@@ -6,7 +6,7 @@ const ratio=r=>r==null?'Not comparable':r.toFixed(2)+'× sampled median';
 function CopyIdea({idea,onError}){
   const [done,setDone]=useState(false);
   async function copy(){
-    try{await navigator.clipboard.writeText([idea.title,'',idea.hook,'','Why test: '+idea.why,'Measure: '+idea.measure].join('\n'));setDone(true);}
+    try{await navigator.clipboard.writeText([idea.title,'',idea.hook,'','Why test: '+idea.why,'','Supporting upload: '+(idea.sources?.[0]?.title||'Not available'),(idea.sources?.[0]?.url||''),'','Measure: '+idea.measure].join('\n'));setDone(true);}
     catch{onError('Copy was blocked by your browser.');}
   }
   return <button className="of-copy" type="button" onClick={copy}>{done?<Check size={15}/>:<Copy size={15}/>} {done?'Copied':'Copy idea'}</button>;
@@ -69,7 +69,7 @@ export default function OpportunityFinder({data,onUseIdea}){
         <div><small>TOPIC GROUPS FOUND</small><strong>{topics.length}</strong><span>At least two uploads per group</span></div>
       </div>
       <section className="of-section">
-        <div className="of-title"><div><small>01 · CONTENT PATTERNS</small><h3><Layers3 size={19}/> Your recurring topics</h3></div></div>
+        <div className="of-title"><div><small>01 · CONTENT PATTERNS</small><h3><Layers3 size={19}/> Your recurring game and topic themes</h3></div></div>
         {topics.length?<div className="of-themes">{topics.map((theme,i)=><article className="of-theme" key={theme.topic}>
           <div className="of-theme-head"><div><span className="of-topic-num">0{i+1}</span><h4>{theme.topic}</h4></div><span className="of-topic-count">{theme.count} videos</span></div>
           <div className="of-theme-metrics"><strong>{num(theme.medianViews)} median views</strong>
@@ -97,6 +97,14 @@ export default function OpportunityFinder({data,onUseIdea}){
           <h4>{idea.title}</h4>
           <p><strong>HOOK</strong> {idea.hook}</p>
           <p><strong>WHY TRY IT</strong> {idea.why}</p>
+          <div className="of-evidence">
+            <strong><Info size={13}/> Why this idea? Supporting upload</strong>
+            {(idea.sources||[]).length?idea.sources.map(video=><div className="of-evidence-item" key={video.id}>
+              <span>{video.title}</span>
+              <small>{num(video.views)} lifetime views</small>
+              {video.url&&<a href={video.url} target="_blank" rel="noopener noreferrer" aria-label={'View supporting video: '+video.title}><ExternalLink size={14}/></a>}
+            </div>):<p className="of-evidence-missing">No source video available for this suggestion.</p>}
+          </div>
           <p><strong>HOW TO MEASURE</strong> {idea.measure}</p>
           <div className="of-actions"><CopyIdea idea={idea} onError={setError}/>
             <button type="button" className="of-apply" onClick={()=>onUseIdea(idea)}>
