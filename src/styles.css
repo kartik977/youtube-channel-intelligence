@@ -211,3 +211,38 @@ footer {margin-top:36px;border-top:1px solid #303141;padding-top:22px;display:fl
 @media(prefers-reduced-motion:reduce) {
   *,*:before,*:after {transition:none!important;animation:none!important}
 }
+
+
+/* Distinct workspaces: channel analytics, Instagram writing, shared planning. */
+.sidebar{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#494255 transparent}
+.sidebar .brand{padding-bottom:28px;flex-shrink:0}
+.workspace-switcher{display:flex;flex-direction:column;gap:8px;margin:0 0 23px}
+.workspace-choice{width:100%;display:flex;align-items:center;gap:10px;text-align:left;
+  border:1px solid #35384b;border-radius:12px;background:#1b1d2a;color:#b5b9cb;
+  padding:10px 9px;font-size:12px;min-height:57px;transition:background .15s,border-color .15s}
+.workspace-choice:hover{border-color:#806175;background:#262437;color:#fff}
+.workspace-choice.active{border-color:#cc6b88;background:linear-gradient(110deg,#432738,#2a2339);color:#ffe6ec}
+.workspace-icon{display:grid;place-items:center;flex-shrink:0;width:35px;height:35px;border-radius:10px;background:#302b3c;color:#e8a3c1}
+.workspace-youtube .workspace-icon{color:#ff9b9e}
+.workspace-instagram .workspace-icon{color:#f6a0d3}
+.workspace-creator .workspace-icon{color:#d6b4ff}
+.workspace-choice.active .workspace-icon{background:#63304c;color:#fff}
+.workspace-copy{flex:1;min-width:0}
+.workspace-copy strong{display:block;font-size:12px;line-height:1.25}
+.workspace-copy small{display:block;font-size:9px;font-weight:500;line-height:1.4;color:#9296a9;margin-top:3px}
+.workspace-choice.active .workspace-copy small{color:#e2b3c5}
+.workspace-arrow{flex-shrink:0;color:#8b829c}
+.workspace-choice.active .workspace-arrow{color:#ffa7c0}
+.workspace-subhead{margin-bottom:10px;color:#daacbe;letter-spacing:1.3px}
+.workspace-info{font-size:10px;line-height:1.6;color:#858aa0;border-top:1px solid #2e3041;padding:15px 10px 8px;margin:15px 0 0}
+.crumb-platform{color:#f6adbf}
+@media(max-height:830px){
+  .sidebar{padding-top:20px;padding-bottom:15px}
+  .sidebar .brand{padding-bottom:20px}
+  .workspace-switcher{gap:5px;margin-bottom:15px}
+  .workspace-choice{min-height:47px;padding:6px 8px}
+  .sidebar nav{gap:3px}
+  .nav-btn{padding:10px 12px}
+  .sidebar-note{padding:14px}
+  .side-footer{padding-top:14px}
+}
