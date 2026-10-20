@@ -25,6 +25,16 @@ const instructional=/\b(?:how to|tutorial|step[- ]by[- ]step|learn (?:how |to )|
 const inferredReview=/\b(?:review|tested|rated|rating|pros and cons|worth buying|should you buy)\b/i;
 const unsupportedOutcomes=/\b(?:won the match|beat the boss|got a victory|perfect score|record[- ]breaking|world record|unbeatable|guaranteed win)\b/i;
 const inflatedClaims=/\b(?:you will learn|we'?ll teach|i'?ll show you how|we'?ll show you how|master(?:ing)? the|secrets? to|guaranteed|proven to|life[- ]changing)\b/i;
+// Catch concrete props and scenes that the model might invent after seeing only
+// "Halloween decoration" or another broad subject. Style words ("spooky") stay okay.
+const concreteDetails=[
+  {claim:/\b(?:pumpkins?|jack[- ]o[- ]lanterns?)\b/i,evidence:/\b(?:pumpkins?|jack[- ]o[- ]lanterns?)\b/i},
+  {claim:/\b(?:ghosts?|ghostly|specters?)\b/i,evidence:/\b(?:ghosts?|ghostly|specters?)\b/i},
+  {claim:/\b(?:lights?|lighting|leds?|twinkling|illuminated|neon|glowing)\b/i,evidence:/\b(?:lights?|lighting|leds?|twinkling|illuminated|neon|glowing|lit up)\b/i},
+  {claim:/\b(?:fog|smoke|mist)\b/i,evidence:/\b(?:fog|smoke|mist)\b/i},
+  {claim:/\b(?:skeletons?|zombies?|witches?|spiders?|cobwebs?)\b/i,evidence:/\b(?:skeletons?|zombies?|witches?|spiders?|cobwebs?)\b/i},
+  {claim:/\b(?:neighbors?|crowds?|visitors?)\b/i,evidence:/\b(?:neighbors?|crowds?|visitors?)\b/i}
+];
 function briefEvidence(brief){
   return concise(brief.description).toLowerCase();
 }
@@ -34,6 +44,7 @@ function noInferredClaim(value,brief){
   if(kind!=='review'&&inferredReview.test(value)&&!inferredReview.test(description))return false;
   if(unsupportedOutcomes.test(value)&&!unsupportedOutcomes.test(description))return false;
   if(inflatedClaims.test(value)&&!inflatedClaims.test(description))return false;
+  for(const detail of concreteDetails)if(detail.claim.test(value)&&!detail.evidence.test(description))return false;
   return true;
 }
 export function groundedCopy(value,brief){
