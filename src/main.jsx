@@ -4,7 +4,7 @@ import {
   Youtube, LayoutDashboard, Film, GitCompareArrows, Sparkles, Search,
   Download, ExternalLink, Users, Eye, Video, CalendarDays, Info,
   RefreshCw, Menu, X, ArrowRight, BarChart3, TrendingUp,
-  Activity, AlertCircle, Play, ArrowDownUp, Target, Instagram, Send, Layers3
+  Activity, AlertCircle, Play, ArrowDownUp, Target, Instagram, Send, Layers3, House
 } from 'lucide-react';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
@@ -16,6 +16,7 @@ import OpportunityFinder from './OpportunityFinder';
 import InstagramStudio from './InstagramStudio';
 import SocialPublishing from './SocialPublishing';
 import ContentCalendar from './ContentCalendar';
+import WelcomeHome from './WelcomeHome';
 import {ideaToOptimizerDraft} from './calendar-optimizer.js';
 import {workspaceConfig,getWorkspace,getWorkspaceForTab,defaultTabForWorkspace,tabsForWorkspace,hashForTab,tabFromHash} from './workspace-routing.js';
 import './styles.css';
@@ -225,7 +226,7 @@ function Insights({data,model}) {
 }
 function App(){
   const [data,setData] = useState(demoData);
-  const [tab,setTab] = useState(()=>tabFromHash(window.location.hash));
+  const [tab,setTab] = useState(()=>window.location.hash?tabFromHash(window.location.hash):'home');
   const [query,setQuery] = useState('');
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
@@ -233,9 +234,10 @@ function App(){
   const [optimizerDraft,setOptimizerDraft] = useState({title:'',version:0});
   const model = useMemo(()=>analyze(data),[data]);
   const activeWorkspace=getWorkspace(getWorkspaceForTab(tab));
-  const visibleTabs=tabs.filter(item=>tabsForWorkspace(activeWorkspace.id).includes(item.id));
+  const isLanding=tab==='home';
+  const visibleTabs=isLanding?[]:tabs.filter(item=>tabsForWorkspace(activeWorkspace.id).includes(item.id));
   useEffect(()=>{
-    const onHashChange=()=>{setTab(tabFromHash(window.location.hash));setMenu(false);};
+    const onHashChange=()=>{setTab(window.location.hash?tabFromHash(window.location.hash):'home');setMenu(false);};
     window.addEventListener('hashchange',onHashChange);
     return ()=>window.removeEventListener('hashchange',onHashChange);
   },[]);
@@ -263,15 +265,16 @@ function App(){
     finally {setBusy(false);}
   }
   function showDemo(){setData(demoData);switchTab('overview');setQuery('');setError('');}
-  return <div className={"app theme-"+activeWorkspace.id} data-page={tab}>
+  return <div className={"app theme-"+(isLanding?'landing':activeWorkspace.id)} data-page={tab}>
     <aside className={'sidebar'+(menu?' sidebar-open':'')}>
-      <div className="brand"><div className="brand-icon"><Youtube size={25}/></div><div><strong>channel<span>scope</span></strong><small>CREATOR INTELLIGENCE</small></div></div>
+      <button type="button" className="brand brand-button" aria-label="ChannelScope home" onClick={()=>switchTab('home')}><div className="brand-icon"><Youtube size={25}/></div><div><strong>channel<span>scope</span></strong><small>CREATOR INTELLIGENCE</small></div></button>
+      <button type="button" className={"sidebar-home-link"+(isLanding?" selected":"")} aria-current={isLanding?"page":undefined} onClick={()=>switchTab('home')}><House size={16}/> Discover ChannelScope</button>
       <div className="side-label">CHOOSE YOUR PLATFORM</div>
       <div className="workspace-switcher" role="navigation" aria-label="Creator workspaces">
         {workspaceConfig.map(item=>{
           const Icon=workspaceIcons[item.id];
-          return <button type="button" key={item.id} className={'workspace-choice workspace-'+item.id+(activeWorkspace.id===item.id?' active':'')}
-            aria-current={activeWorkspace.id===item.id?'page':undefined}
+          return <button type="button" key={item.id} className={'workspace-choice workspace-'+item.id+(!isLanding&&activeWorkspace.id===item.id?' active':'')}
+            aria-current={!isLanding&&activeWorkspace.id===item.id?'page':undefined}
             onClick={()=>switchTab(defaultTabForWorkspace(item.id))}>
             <span className="workspace-icon"><Icon size={20}/></span>
             <span className="workspace-copy"><strong>{item.label}</strong><small>{item.subtitle}</small></span>
@@ -279,13 +282,13 @@ function App(){
           </button>;
         })}
       </div>
-      <div className="side-label workspace-subhead">{activeWorkspace.label.toUpperCase()} TOOLS</div>
+      {!isLanding&&<><div className="side-label workspace-subhead">{activeWorkspace.id==='creator'?'SHARED TOOLS':activeWorkspace.label.toUpperCase()+' TOOLS'}</div>
       <nav aria-label={activeWorkspace.label+' tools'}>
         {visibleTabs.map(item=><button type="button" key={item.id} onClick={()=>switchTab(item.id)}
           aria-current={tab===item.id?'page':undefined}
           className={'nav-btn'+(tab===item.id?' selected':'')}><item.icon size={19}/>{item.label}</button>)}
-      </nav>
-      <p className="workspace-info">{activeWorkspace.id==='youtube'
+      </nav></>}
+      <p className="workspace-info">{isLanding?'Choose a workspace to get started. Your drafts and planning tools need no social login.':activeWorkspace.id==='youtube'
         ?'Public channel analytics, video strategy and YouTube optimization.'
         :activeWorkspace.id==='instagram'
           ?'Instagram bios, captions and hashtags. No account connection needed.'
@@ -295,15 +298,16 @@ function App(){
     </aside>
     {menu && <button className="mobile-overlay" aria-label="Close navigation" onClick={()=>setMenu(false)}/>}
     <main className="main">
-      <header className="topbar"><div className="crumb"><button className="mobile-menu" onClick={()=>setMenu(v=>!v)} aria-label="Menu">{menu?<X/>:<Menu/>}</button><span className="crumb-platform">{activeWorkspace.label}</span><span>/</span><strong>{tabs.find(t=>t.id===tab)?.label||'Overview'}</strong></div>
-        <span className="source-indicator"><span className="status-dot"/>{['instagram','social','calendar'].includes(tab)?'NO LOGIN NEEDED':tab==='optimizer'&&optimizerDraft.origin==='calendar'?'PLANNED SHORT DRAFT':data.source==='demo'?'DEMO DATA':'PUBLIC YOUTUBE DATA'}</span></header>
+      <header className="topbar"><div className="crumb"><button className="mobile-menu" onClick={()=>setMenu(v=>!v)} aria-label="Menu">{menu?<X/>:<Menu/>}</button><span className="crumb-platform">{isLanding?'ChannelScope':activeWorkspace.label}</span><span>/</span><strong>{isLanding?'Discover':tabs.find(t=>t.id===tab)?.label||'Overview'}</strong></div>
+        <span className="source-indicator"><span className="status-dot"/>{isLanding?'FREE CREATOR TOOLS':['instagram','social','calendar'].includes(tab)?'NO LOGIN NEEDED':tab==='optimizer'&&optimizerDraft.origin==='calendar'?'PLANNED SHORT DRAFT':data.source==='demo'?'DEMO DATA':'PUBLIC YOUTUBE DATA'}</span></header>
       <div className="content">
-        {!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&<div className="search-row"><form className="search-form" onSubmit={submit}><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)}
+        {tab!=='home'&&!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&<div className="search-row"><form className="search-form" onSubmit={submit}><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)}
           aria-label="Channel handle or URL" placeholder="Enter @channelhandle or YouTube channel URL" required/>
           <button className="primary-btn" disabled={busy}>{busy?<RefreshCw size={16} className="spin"/>:<ArrowRight size={16}/>} {busy?'Analyzing…':'Analyze channel'}</button></form>
           <button className="outline-btn" onClick={showDemo}><Play size={14}/>Try demo</button></div>}
         {error && <div className="error"><AlertCircle size={18}/><span>{error}</span><button onClick={()=>setError('')} aria-label="Dismiss"><X size={16}/></button></div>}
-        {!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&data.source==='demo' && <p className="demo-banner"><Info size={16}/> You're viewing <strong>fictional demo data.</strong> Connect your YouTube API key to explore real public channel metrics.</p>}
+        {tab!=='home'&&!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&data.source==='demo' && <p className="demo-banner"><Info size={16}/> You're viewing <strong>fictional demo data.</strong> Connect your YouTube API key to explore real public channel metrics.</p>}
+        {tab==='home'&&<WelcomeHome onExplore={id=>switchTab(defaultTabForWorkspace(id))} onDemo={showDemo} onCalendar={()=>switchTab('calendar')}/>}
         {tab==='overview'&&<Overview data={data} model={model} showVideos={()=>switchTab('videos')}/>}
         {tab==='videos'&&<VideoLibrary data={data}/>}
         {tab==='compare'&&<Comparison key={data.channel.id} data={data} model={model}/>}
@@ -314,7 +318,7 @@ function App(){
         {tab==='instagram'&&<InstagramStudio/>}
         {tab==='social'&&<SocialPublishing/>}
         {tab==='calendar'&&<ContentCalendar onUseIdea={useCalendarIdea}/>}
-        <footer><span>ChannelScope · Independent creator tools</span><span>{tab==='calendar'?'Draft content calendar · No scheduling, publishing or account connection':tab==='social'?'Instagram + YouTube Shorts drafts only · No account connection or posting · Independent creator tools':tab==='instagram'?'Instagram drafts only · No posting or account connection · Not affiliated with Instagram':(data.source==='demo'?'Fictional example':'Fetched '+day(data.fetchedAt))+' · Public YouTube data · Not affiliated with YouTube'}</span></footer>
+        <footer><span>ChannelScope · Independent creator tools</span><span>{isLanding?'Explore free creator tools · Public YouTube data only · No automatic publishing':tab==='calendar'?'Draft content calendar · No scheduling, publishing or account connection':tab==='social'?'Instagram + YouTube Shorts drafts only · No account connection or posting · Independent creator tools':tab==='instagram'?'Instagram drafts only · No posting or account connection · Not affiliated with Instagram':(data.source==='demo'?'Fictional example':'Fetched '+day(data.fetchedAt))+' · Public YouTube data · Not affiliated with YouTube'}</span></footer>
       </div>
     </main>
   </div>;
