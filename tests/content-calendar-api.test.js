@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {normalizeCalendarBrief,createContentCalendar} from '../src/content-calendar-plan.js';
-import {onRequestPost,validateAIPlan} from '../functions/api/content-calendar.js';
+import {onRequestPost,validateAIPlan,normalizeCalendarAIResponse} from '../functions/api/content-calendar.js';
 import worker from '../worker/index.js';
 
 const brief={
@@ -95,7 +95,8 @@ test('Rate limits and invalid responses fall back without leaking secrets',async
     r=await onRequestPost({request:req(brief),env:{GROQ_API_KEY:'private-key'}});
     p=await r.json();
     assert.equal(p.mode,'free');
-    assert.equal(p.aiErrorCode,'incomplete');
+    assert.equal(p.aiErrorCode,'filtered');
+    assert.match(p.generation.reason,/too generic|unrelated/);
   }finally{globalThis.fetch=old;}
 });
 test('Worker exposes calendar POST and preserves methods and static site routes',async()=>{
@@ -138,4 +139,57 @@ test('Long 30-day calendars show AI + templates instead of falsely calling all s
   assert.equal(result.generation.templateCount,plan.slots.length-12);
   assert.ok(result.slots.some(x=>x.source==='template'));
   assert.ok(result.slots.every((s,i)=>s.date===plan.slots[i].date));
+});
+
+
+test('AI calendar accepts alternate JSON keys and grounded PS5 game titles',()=>{
+  const plan=createContentCalendar({...brief,niche:'PS5 Gaming. Different Games',platform:'youtube'});
+  const normalized=normalizeCalendarAIResponse({posts:[
+    {videoTitle:'Two PS5 Game Openings — Which Wins?',whatToCreate:'Record the opening minutes of two actual PS5 games you can access and compare them honestly.',
+      openingHook:'Two game openings — which grabs you first?',cta:'Choose your favorite.'},
+    {topic:'Same Challenge in Two Games',description:'Try one manageable challenge in two PS5 games and record the actual results as footage.',
+      intro:'Same challenge, different PS5 games. Which is tougher?',question:'What challenge comes next?'},
+    {title:'PS5 Gameplay: Audience Picks My Next Game',idea:'Show a shortlist of accessible PS5 games and ask viewers what you should play next.',
+      hook:'I can play one of these PS5 games. Which do you pick?',callToAction:'Vote in the comments.'}
+  ]});
+  assert.equal(normalized.ideas.length,3);
+  const result=validateAIPlan(normalized,plan);
+  assert.equal(result.mode,'ai');
+  assert.equal(result.generation.aiCount,3);
+  assert.equal(result.slots[1].title,'Same Challenge in Two Games');
+  assert.equal(result.slots[2].source,'ai');
+});
+test('Calendar parses fenced JSON and preserves useful partial ideas',async()=>{
+  const prev=globalThis.fetch;
+  globalThis.fetch=async()=>{
+    const response={posts:[
+      {videoTitle:'Compare PS5 Game Openings',whatToCreate:'Record brief opening gameplay in two PS5 games you have access to, then compare real scenes.',
+        openingHook:'Two openings, which game draws you in?',cta:'Vote A or B!'},
+      {title:'Totally unrelated cooking tip',description:'Bake pizza without anything about games.',
+        hook:'What ingredients do you use?',cta:'Share.'}
+    ]};
+    const fence=String.fromCharCode(96).repeat(3);
+    return Response.json({choices:[{message:{content:fence+'json\n'+JSON.stringify(response)+'\n'+fence}}]});
+  };
+  try{
+    const r=await onRequestPost({request:req({...brief,niche:'PS5 Gaming. Different Games'}),env:{GROQ_API_KEY:'secret'}});
+    const p=await r.json();
+    assert.equal(r.status,200);
+    assert.equal(p.mode,'hybrid');
+    assert.equal(p.generation.aiCount,1);
+    assert.equal(p.generation.templateCount,2);
+    assert.match(p.slots[0].title,/PS5/i);
+    assert.ok(p.slots.slice(1).every(x=>x.source==='template'));
+    assert.doesNotMatch(JSON.stringify(p),/secret|private/);
+  }finally{globalThis.fetch=prev;}
+});
+test('Calendar distinguishes malformed provider schema from filtered generic ideas',async()=>{
+  const prev=globalThis.fetch;
+  try{
+    globalThis.fetch=async()=>Response.json({choices:[{message:{content:'{"somethingElse":[]}'}}]});
+    const r=await onRequestPost({request:req(brief),env:{GROQ_API_KEY:'private-key'}});
+    const p=await r.json();
+    assert.equal(p.aiErrorCode,'schema');
+    assert.match(p.generation.reason,/unexpected data structure/);
+  }finally{globalThis.fetch=prev;}
 });

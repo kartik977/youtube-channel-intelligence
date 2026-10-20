@@ -36,11 +36,11 @@ function CopyButton({content,label='Copy',onError}) {
     {copied?<Check size={14}/>:<Copy size={14}/>} {copied?'Copied':label}
   </button>;
 }
-export default function VideoOptimizer({data,initialTopic=''}) {
-  const [kind,setKind]=useState('video');
-  const [topic,setTopic]=useState(initialTopic);
-  const [description,setDescription]=useState('');
-  const [audience,setAudience]=useState('');
+export default function VideoOptimizer({data,initialTopic='',initialDraft={}}) {
+  const [kind,setKind]=useState(initialDraft.kind||'video');
+  const [topic,setTopic]=useState(initialDraft.title||initialTopic);
+  const [description,setDescription]=useState(initialDraft.description||'');
+  const [audience,setAudience]=useState(initialDraft.audience||'');
   const [tone,setTone]=useState('clear');
   const [videoUrl,setVideoUrl]=useState('');
   const [loadedVideo,setLoadedVideo]=useState(null);
@@ -50,7 +50,7 @@ export default function VideoOptimizer({data,initialTopic=''}) {
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [generatedFor,setGeneratedFor]=useState('');
-  const recent=(data?.videos||[]).slice(0,10);
+  const recent=(data?.source==='demo'?[]:(data?.videos||[])).slice(0,10);
   function applyVideo(metadata,originalLink) {
     setTopic(metadata.title);
     setDescription(metadata.description||'');
@@ -141,6 +141,9 @@ export default function VideoOptimizer({data,initialTopic=''}) {
       </div>
       <span><Check size={14}/> Free to try</span>
     </section>
+    {initialDraft.origin==='calendar'&&<p className="vo-calendar-handoff" role="status">
+      <Info size={17}/> <span><strong>Imported from Content Calendar.</strong> This is a proposed video, not analyzed footage. The title, concept, opening hook and audience have been prefilled. Review and edit the brief before generating. {initialDraft.sourcePlatform==='Instagram Reel'?'This tool prepares a YouTube Short version of your Instagram idea.':''}</span>
+    </p>}
     <div className="vo-grid">
       <section className="vo-form-panel">
         <h2><PenTool size={20}/> Your video brief</h2>

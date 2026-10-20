@@ -23,7 +23,7 @@ const goals=[
 ];
 const frequencies=[[2,'2 posts / week'],[3,'3 posts / week'],[5,'5 posts / week']];
 const channelLabels={both:'Mix both platforms',instagram:'Instagram Reels only',youtube:'YouTube Shorts only'};
-export default function ContentCalendar(){
+export default function ContentCalendar({onUseIdea}){
   const [niche,setNiche]=useState('');
   const [audience,setAudience]=useState('');
   const [goal,setGoal]=useState('consistency');
@@ -191,10 +191,15 @@ export default function ContentCalendar(){
                   <p><b>CTA</b> {item.callToAction}</p>
                   <p className="cc-post-tip">{item.goalNote}</p>
                 </div>
-                <button type="button" className="cc-toggle" onClick={()=>toggle(item.id)}>
-                  {item.status==='done'?<Check size={15}/>:<span className="cc-circle"/>}
-                  {item.status==='done'?'Completed (local only)':'Mark as done'}
-                </button>
+                <div className="cc-card-actions">
+                  <button type="button" className="cc-optimizer-link" onClick={()=>onUseIdea?.(item,plan.config)}>
+                    Use in Video Optimizer <ArrowRight size={14}/>
+                  </button>
+                  <button type="button" className="cc-toggle" onClick={()=>toggle(item.id)}>
+                    {item.status==='done'?<Check size={15}/>:<span className="cc-circle"/>}
+                    {item.status==='done'?'Completed (local only)':'Mark as done'}
+                  </button>
+                </div>
               </article>)}</div>
             </section>)}
           </div>

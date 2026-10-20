@@ -75,3 +75,8 @@
 .cc-post-meta>span:first-child{font-size:9px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;color:#ebabc7}
 .cc-idea-source{font-size:9px;font-weight:750;color:#cbbac5;background:#3b3241;border:1px solid #66556b;padding:5px 8px;border-radius:20px}
 .cc-idea-source.ai{color:#a9ebce;background:#263e36;border-color:#547963}
+
+.cc-card-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto}
+.cc-optimizer-link{display:inline-flex;gap:7px;align-items:center;justify-content:center;border:1px solid #ee809f;background:linear-gradient(110deg,#e85482,#a74eb9);padding:9px 11px;border-radius:8px;color:#fff;font-size:10px;font-weight:800;cursor:pointer}
+.cc-optimizer-link:hover{filter:brightness(1.1)}
+.cc-card-actions .cc-toggle{align-self:auto}
