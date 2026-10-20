@@ -7,7 +7,7 @@ const main=readFileSync(new URL('../src/main.jsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 
 test('Every page receives the current workspace and page theme automatically',()=>{
-  assert.match(main,/className=\{"app theme-"\+activeWorkspace\.id\}\s+data-page=\{tab\}/);
+  assert.match(main,/className=\{"app theme-"\+\(isLanding\?'landing':activeWorkspace\.id\)\}\s+data-page=\{tab\}/);
   assert.match(main,/activeWorkspace=getWorkspace\(getWorkspaceForTab\(tab\)\)/);
   for(const tab of tabIds){
     const workspace=getWorkspaceForTab(tab);
