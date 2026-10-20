@@ -4,7 +4,7 @@ import {
   Youtube, LayoutDashboard, Film, GitCompareArrows, Sparkles, Search,
   Download, ExternalLink, Users, Eye, Video, CalendarDays, Info,
   RefreshCw, Menu, X, ArrowRight, BarChart3, TrendingUp,
-  Activity, AlertCircle, Play, ArrowDownUp
+  Activity, AlertCircle, Play, ArrowDownUp, Target
 } from 'lucide-react';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
