@@ -56,6 +56,7 @@ export function relevantTag(value,brief){
  const needle=tag.slice(1).toLowerCase();
  if(condensed.includes(needle))return true;
  if(inferredNiche(brief).some(x=>x.toLowerCase()===needle))return true;
+ if(contextHashtags(brief).some(x=>x.tag.toLowerCase()===tag.toLowerCase()))return true;
  const concepts=words(combined).filter(w=>w.length>=4);
  return concepts.some(w=>needle.includes(w));
 }
@@ -209,11 +210,11 @@ export function validateInstagramAI(payload,brief,backup){
        'AI + TEMPLATES: safe Groq captions combined with template alternatives. No popularity data was measured.'};
  }
  const list=Array.isArray(payload.hashtags)?payload.hashtags.slice(0,18):[];
- const ai=collectTags([...contextHashtags(brief),...list],brief);
- if(!ai.length)throw Error('incomplete');
- const combined=collectTags([...ai,...backup.hashtags],brief);
- return {kind:'hashtags',mode:ai.length>=5?'ai':'hybrid',hashtags:combined,
-   note:ai.length>=5?'Groq-generated relevant tags based on your description, not verified trending hashtags.':'AI + TEMPLATES: Groq-generated hashtags supplemented by free topic-based suggestions.'};
+ const modelTags=collectTags(list,brief);
+ if(!modelTags.length)throw Error('incomplete');
+ const combined=collectTags([...contextHashtags(brief),...modelTags,...backup.hashtags],brief);
+ return {kind:'hashtags',mode:modelTags.length>=5?'ai':'hybrid',hashtags:combined,
+   note:modelTags.length>=5?'Groq-generated relevant tags refined with verified description context, not live trend data.':'AI + TEMPLATES: valid Groq tags supplemented by conservative description-based suggestions.'};
 }
 async function askGroq(brief,backup,key,model){
  const controller=new AbortController();
