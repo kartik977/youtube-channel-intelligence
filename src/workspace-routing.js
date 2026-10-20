@@ -23,6 +23,7 @@ export function getWorkspace(id){
 export function defaultTabForWorkspace(id){return getWorkspace(id).home;}
 export function tabsForWorkspace(id){return getWorkspace(id).tabIds;}
 export function hashForTab(tab){
+  if(tab==='home')return '#/home';
   const valid=tabIds.includes(tab)?tab:'overview';
   const workspace=getWorkspace(getWorkspaceForTab(valid));
   return '#/'+workspace.route+'/'+paths[valid];
@@ -30,6 +31,7 @@ export function hashForTab(tab){
 export function tabFromHash(hash){
   if(!hash||typeof hash!=='string')return 'overview';
   const clean=hash.trim().replace(/^#/,'').replace(/^\/+/,'').replace(/\/+$/,'').toLowerCase();
+  if(clean==='home')return 'home';
   // Old-style hashes like #/optimizer remain accepted.
   if(tabIds.includes(clean))return clean;
   const parts=clean.split('/');
