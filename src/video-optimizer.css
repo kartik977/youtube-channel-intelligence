@@ -102,3 +102,7 @@
 .vo-mode.vo-hybrid{background:#352d43;border-color:#7963a7;color:#ebd2ff}
 .vo-sparse-warning{display:flex;align-items:flex-start;gap:9px;border:1px solid #886441;background:#32291f;color:#e6c8a5;border-radius:10px;padding:13px;font-size:11px;line-height:1.7;margin:10px 0 0}
 .vo-sparse-warning svg{flex-shrink:0;margin-top:1px}
+
+.vo-calendar-handoff{display:flex;align-items:flex-start;gap:12px;margin:0 0 18px;padding:15px 17px;border:1px solid #6d5573;background:#2b2639;color:#d2cadb;border-radius:12px;font-size:12px;line-height:1.7}
+.vo-calendar-handoff svg{color:#fd9fbd;flex-shrink:0;margin-top:2px}
+.vo-calendar-handoff strong{color:#ffe2eb}
