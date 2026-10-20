@@ -100,7 +100,7 @@ export async function onRequestPost({request,env={}}){
   }catch(e){return json({error:e instanceof SyntaxError?'Invalid JSON.':e.message},400);}
   const evidence=analyzeOpportunities(input),backup=fallbackIdeas(evidence);
   const base={channelTitle:input.channel.title,source:input.source,evidence,
-    ideas:backup,mode:'data',note:'Ideas reference real uploads. Lifetime medians are descriptive, not day-7 targets or growth forecasts.'};
+    ideas:backup,mode:'data',note:'Ideas reference real uploads, not predictions. Lifetime medians are descriptive, not day-7 targets or growth forecasts.'};
   if(!input.videos.length)return json({...base,note:'No accessible uploads. Analyze a channel with recent public videos.'});
   if(!env.GROQ_API_KEY||!evidence.themes.some(x=>!x.other&&x.count>=2))return json(base);
   try{
