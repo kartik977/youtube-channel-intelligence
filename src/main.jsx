@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Youtube, LayoutDashboard, Film, GitCompareArrows, Sparkles, Search,
   Download, ExternalLink, Users, Eye, Video, CalendarDays, Info,
   RefreshCw, Menu, X, ArrowRight, BarChart3, TrendingUp,
-  Activity, AlertCircle, Play, ArrowDownUp, Target, Instagram, Send
+  Activity, AlertCircle, Play, ArrowDownUp, Target, Instagram, Send, Layers3
 } from 'lucide-react';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
@@ -17,6 +17,7 @@ import InstagramStudio from './InstagramStudio';
 import SocialPublishing from './SocialPublishing';
 import ContentCalendar from './ContentCalendar';
 import {ideaToOptimizerDraft} from './calendar-optimizer.js';
+import {workspaceConfig,getWorkspace,getWorkspaceForTab,defaultTabForWorkspace,tabsForWorkspace,hashForTab,tabFromHash} from './workspace-routing.js';
 import './styles.css';
 
 const tabs = [
@@ -31,6 +32,7 @@ const tabs = [
   { id: 'social', label: 'Social Publishing', icon: Send },
   { id: 'calendar', label: 'Content Calendar', icon: CalendarDays }
 ];
+const workspaceIcons = {youtube:Youtube,instagram:Instagram,creator:Layers3};
 const compact = n => n == null ? '—' : new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 const number = n => n == null ? 'Not available' : Number(n).toLocaleString('en-US');
 const day = value => value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
@@ -223,14 +225,27 @@ function Insights({data,model}) {
 }
 function App(){
   const [data,setData] = useState(demoData);
-  const [tab,setTab] = useState('overview');
+  const [tab,setTab] = useState(()=>tabFromHash(window.location.hash));
   const [query,setQuery] = useState('');
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
   const [menu,setMenu] = useState(false);
   const [optimizerDraft,setOptimizerDraft] = useState({title:'',version:0});
   const model = useMemo(()=>analyze(data),[data]);
-  const switchTab = id => {setTab(id);setMenu(false);};
+  const activeWorkspace=getWorkspace(getWorkspaceForTab(tab));
+  const visibleTabs=tabs.filter(item=>tabsForWorkspace(activeWorkspace.id).includes(item.id));
+  useEffect(()=>{
+    const onHashChange=()=>{setTab(tabFromHash(window.location.hash));setMenu(false);};
+    window.addEventListener('hashchange',onHashChange);
+    return ()=>window.removeEventListener('hashchange',onHashChange);
+  },[]);
+  const switchTab = id => {
+    const next=tabFromHash(hashForTab(id));
+    setTab(next);
+    setMenu(false);
+    const target=hashForTab(next);
+    if(window.location.hash!==target)window.location.hash=target;
+  };
   function useOpportunity(idea) {
     setOptimizerDraft(prev=>({title:idea.title,description:'',audience:'',kind:'video',
       origin:'opportunity',version:prev.version+1}));
@@ -243,22 +258,44 @@ function App(){
   }
   async function submit(e) {
     e.preventDefault(); setBusy(true); setError('');
-    try { const result=await loadChannel(query.trim());setData(result);setTab('overview'); }
+    try { const result=await loadChannel(query.trim());setData(result);switchTab('overview'); }
     catch(e){setError(e.message);}
     finally {setBusy(false);}
   }
-  function showDemo(){setData(demoData);setTab('overview');setQuery('');setError('');}
+  function showDemo(){setData(demoData);switchTab('overview');setQuery('');setError('');}
   return <div className="app">
     <aside className={'sidebar'+(menu?' sidebar-open':'')}>
       <div className="brand"><div className="brand-icon"><Youtube size={25}/></div><div><strong>channel<span>scope</span></strong><small>CREATOR INTELLIGENCE</small></div></div>
-      <div className="side-label">WORKSPACE</div>
-      <nav>{tabs.map(item=><button key={item.id} onClick={()=>switchTab(item.id)} className={'nav-btn'+(tab===item.id?' selected':'')}><item.icon size={19}/>{item.label}</button>)}</nav>
+      <div className="side-label">CHOOSE YOUR PLATFORM</div>
+      <div className="workspace-switcher" role="navigation" aria-label="Creator workspaces">
+        {workspaceConfig.map(item=>{
+          const Icon=workspaceIcons[item.id];
+          return <button type="button" key={item.id} className={'workspace-choice workspace-'+item.id+(activeWorkspace.id===item.id?' active':'')}
+            aria-current={activeWorkspace.id===item.id?'page':undefined}
+            onClick={()=>switchTab(defaultTabForWorkspace(item.id))}>
+            <span className="workspace-icon"><Icon size={20}/></span>
+            <span className="workspace-copy"><strong>{item.label}</strong><small>{item.subtitle}</small></span>
+            <ArrowRight size={14} className="workspace-arrow"/>
+          </button>;
+        })}
+      </div>
+      <div className="side-label workspace-subhead">{activeWorkspace.label.toUpperCase()} TOOLS</div>
+      <nav aria-label={activeWorkspace.label+' tools'}>
+        {visibleTabs.map(item=><button type="button" key={item.id} onClick={()=>switchTab(item.id)}
+          aria-current={tab===item.id?'page':undefined}
+          className={'nav-btn'+(tab===item.id?' selected':'')}><item.icon size={19}/>{item.label}</button>)}
+      </nav>
+      <p className="workspace-info">{activeWorkspace.id==='youtube'
+        ?'Public channel analytics, video strategy and YouTube optimization.'
+        :activeWorkspace.id==='instagram'
+          ?'Instagram bios, captions and hashtags. No account connection needed.'
+          :'Plan content across Instagram and YouTube, or prepare a publishing pack.'}</p>
       <div className="sidebar-bottom"><div className="sidebar-note"><Sparkles size={19}/><strong>Built for curious creators</strong><p>Find better questions to ask about your content.</p></div>
       <div className="side-footer"><span className="status-dot"/> PUBLIC DATA · FREE STARTER</div></div>
     </aside>
     {menu && <button className="mobile-overlay" aria-label="Close navigation" onClick={()=>setMenu(false)}/>}
     <main className="main">
-      <header className="topbar"><div className="crumb"><button className="mobile-menu" onClick={()=>setMenu(v=>!v)} aria-label="Menu">{menu?<X/>:<Menu/>}</button>Workspace <span>/</span><strong>{tabs.find(t=>t.id===tab).label}</strong></div>
+      <header className="topbar"><div className="crumb"><button className="mobile-menu" onClick={()=>setMenu(v=>!v)} aria-label="Menu">{menu?<X/>:<Menu/>}</button><span className="crumb-platform">{activeWorkspace.label}</span><span>/</span><strong>{tabs.find(t=>t.id===tab)?.label||'Overview'}</strong></div>
         <span className="source-indicator"><span className="status-dot"/>{['instagram','social','calendar'].includes(tab)?'NO LOGIN NEEDED':tab==='optimizer'&&optimizerDraft.origin==='calendar'?'PLANNED SHORT DRAFT':data.source==='demo'?'DEMO DATA':'PUBLIC YOUTUBE DATA'}</span></header>
       <div className="content">
         {!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&<div className="search-row"><form className="search-form" onSubmit={submit}><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)}
