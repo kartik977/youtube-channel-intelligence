@@ -71,3 +71,13 @@
 .of-empty{display:flex;gap:9px;align-items:center;color:#bbb3c4;font-size:12px;line-height:1.6;background:#262638;padding:20px;border-radius:10px}
 @media(max-width:1180px){.of-ideas{grid-template-columns:1fr}.of-preview{grid-template-columns:1fr}}
 @media(max-width:700px){.of-themes,.of-formats,.of-metrics{grid-template-columns:1fr}.of-hero,.of-section{padding:17px}.of-generate{width:100%}.of-hero-orb{width:50px;height:50px}.of-hero-copy h2{font-size:20px}}
+
+
+/* Evidence behind each suggested experiment, visually distinct from AI copy. */
+.of-evidence{border:1px solid #4f4158;background:#1a1d2d;border-radius:11px;padding:13px;margin:4px 0 12px}
+.of-evidence>strong{font-size:10px;letter-spacing:.2px;color:#f8b0c4;display:flex;gap:7px;align-items:center;margin-bottom:10px}
+.of-evidence-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #353447}
+.of-evidence-item>span{font-size:10px;color:#d1d1e0;line-height:1.5;min-width:0;flex:1;overflow-wrap:anywhere}
+.of-evidence-item small{font-size:9px;color:#b6c1d0;white-space:nowrap}
+.of-evidence-item a{color:#f4a2ba;display:flex;align-items:center;justify-content:center}
+.of-evidence-missing{font-size:10px!important;color:#b9b9c5!important;margin:0!important}

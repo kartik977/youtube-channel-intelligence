@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {videoSeconds,normalizeOpportunityInput,analyzeOpportunities,fallbackIdeas} from '../functions/api/opportunity-analysis.js';
-import {onRequestPost} from '../functions/api/opportunities.js';
+import {videoSeconds,normalizeOpportunityInput,analyzeOpportunities,fallbackIdeas,detectTopic} from '../functions/api/opportunity-analysis.js';
+import {onRequestPost,validateIdeas} from '../functions/api/opportunities.js';
 import worker from '../worker/index.js';
 const videos=[
  {id:'a',title:'Call of Duty Modern Warfare Part 1 Gameplay',views:100,publishedAt:'2026-10-01T12:00:00Z',duration:'PT2H12M'},
@@ -84,9 +84,9 @@ test('Groq ideas must use a real observed topic and are limited to 3',async()=>{
     assert.equal(payload.response_format.type,'json_object');
     return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify({
       ideas:[
-        {topic:'Modern Warfare',title:'Modern Warfare: Part 3 with a fresh angle',hook:'Here is the focus of this session.',why:'A recurring sampled topic.',measure:'Track day-7 views.'},
+        {topic:'Modern Warfare',title:'Modern Warfare: Part 3 with a fresh angle',hook:'Here is the focus of this session.',referenceId:'c',why:'Guaranteed a million views.',measure:'Compare day 7 with past lifetime views.'},
         {topic:'Unseen Fortnite',title:'FORTNITE GOES VIRAL',hook:'...',why:'Guaranteed viral trend.',measure:'100% growth'},
-        {topic:'Cricket 26',title:'Cricket 26: Mini Highlight',hook:'Watch this interesting moment.',why:'Cricket 26 recurs in the sample.',measure:'Compare day-7 views'}
+        {topic:'Cricket 26',title:'Cricket 26: Mini Highlight',hook:'Watch this interesting moment.',referenceId:'d',why:'Viewers will watch much longer.',measure:'Compare against 250 lifetime median views'}
       ]
     })}}]});
   };
@@ -97,6 +97,10 @@ test('Groq ideas must use a real observed topic and are limited to 3',async()=>{
     assert.equal(body.mode,'ai');
     assert.equal(body.ideas.length,3);
     assert.equal(body.ideas[0].topic,'Modern Warfare');
+    assert.equal(body.ideas[0].sources[0].id,'c');
+    assert.match(body.ideas[0].why,/3 sampled uploads/);
+    assert.doesNotMatch(body.ideas[0].why,/million views/);
+    assert.match(body.ideas[0].measure,/never with the lifetime medians/);
     assert.ok(!body.ideas.some(x=>x.title.includes('FORTNITE')));
     assert.equal(calls,1);
     assert.doesNotMatch(JSON.stringify(body),/test-private/);
@@ -127,4 +131,82 @@ test('Worker routing validates method and preserves static assets',async()=>{
   assert.equal(r.status,405);
   r=await worker.fetch(new Request('https://channelscope.example/home'),env,ctx);
   assert.equal(await r.text(),'asset served');
+});
+
+
+test('Recognizes named game titles before generic hashtag words',()=>{
+  assert.equal(detectTopic('Sunil Narine mystery | Cricket26 #cricketlover #gaming'),'Cricket 26');
+  assert.equal(detectTopic('Wasim Akram at its prime | Cricket 26 #cricketlover'),'Cricket 26');
+  assert.equal(detectTopic('007 First Light | Part 1 #firstlight #ps5'),'007 First Light');
+  assert.equal(detectTopic('First Light 007 part 2 #firstlight'),'007 First Light');
+  assert.equal(detectTopic('Call of Duty Modern Warfare 4 Live'),'Modern Warfare');
+  assert.equal(detectTopic('World Cup Fever crazy goal #fifa #fc26'),'Football games');
+  assert.equal(detectTopic('No game name #cricketlover #gaming'),'Cricket gaming');
+});
+
+test('Merges overlapping Cricket26/Cricketlover videos and resolves 007 First Light',()=>{
+  const cases=[
+    ['v1','Sunil Narine mystery | Cricket26 #cricketlover #cricket26',1782],
+    ['v2','Wasim Akram at its prime | Cricket26 #cricketlover #ps5',1700],
+    ['v3','Tim David sharp catch | Cricket26 #cricketlover #gaming',1600],
+    ['v4','Kuldeep vs Kohli | Cricket26 #cricketlover',1300],
+    ['v5','IPL final over | Cricket26 #cricketlover',1100],
+    ['v6','007 First Light Part 1 #firstlight',4],
+    ['v7','A glimpse of graphics | First Light 007 #gaming',543],
+    ['v8','Call of Duty Modern Warfare Part 1 gameplay',1],
+    ['v9','Call of Duty MW4 Mumbai View',2],
+    ['v10','World Cup Fever crazy goal #fifa #fc26',1700],
+    ['v11','FIFA ultimate team quick goal #fifa',100]
+  ];
+  const sample=normalizeOpportunityInput({...raw,videos:cases.map(([id,title,views])=>({
+    id,title,views,publishedAt:'2026-10-15T10:00:00Z',duration:'PT1M',
+    url:'https://www.youtube.com/watch?v=abcdefghijk'
+  }))});
+  const report=analyzeOpportunities(sample);
+  const cricket=report.themes.find(x=>x.topic==='Cricket 26');
+  assert.equal(cricket.count,5);
+  assert.equal(cricket.measured,5);
+  assert.equal(report.themes.some(x=>/Cricketlover|^Light$/.test(x.topic)),false);
+  assert.equal(report.themes.find(x=>x.topic==='007 First Light').count,2);
+  assert.equal(report.themes.find(x=>x.topic==='Modern Warfare').count,2);
+  assert.equal(report.themes.find(x=>x.topic==='Football games').count,2);
+  assert.equal(report.themes.reduce((sum,x)=>sum+x.count,0),11);
+});
+
+test('Every fallback idea has real supporting video evidence and fair comparison guidance',()=>{
+  const report=analyzeOpportunities(normalizeOpportunityInput(raw));
+  const ideas=fallbackIdeas(report);
+  for(const idea of ideas){
+    assert.equal(idea.sources.length,1);
+    assert.ok(videos.some(v=>v.id===idea.sources[0].id));
+    assert.ok(idea.why.includes('sampled uploads'));
+    assert.match(idea.measure,/other day-7 results/);
+    assert.match(idea.measure,/never with the lifetime medians/);
+    assert.equal(typeof idea.sampleCount,'number');
+  }
+});
+
+test('Invalid reference IDs, unrelated topics and ungrounded power-hit claims are not admitted',()=>{
+  const report=analyzeOpportunities(normalizeOpportunityInput(raw));
+  const ideas=validateIdeas({ideas:[
+    {topic:'Modern Warfare',referenceId:'invented',title:'Modern Warfare new gameplay',hook:'A new angle.'},
+    {topic:'Fortnite',referenceId:'c',title:'Fortnite predictions',hook:'See the next trend.'},
+    {topic:'Cricket 26',referenceId:'d',title:'Cricket 26 Prime Power-Hit Showdown',hook:'Watch a new challenge.'},
+    {topic:'Modern Warfare',referenceId:'b',title:'Modern Warfare: New Focused Gameplay',hook:'Watch the new gameplay approach.'}
+  ]},report);
+  assert.equal(ideas[0].topic,'Modern Warfare');
+  assert.equal(ideas[0].sources[0].id,'b');
+  assert.ok(ideas.every(x=>!x.title.includes('Power-Hit')));
+  assert.ok(ideas.every(x=>!x.why.includes('Guaranteed')));
+});
+
+test('No source age mismatch: AI cannot override server-supplied measurement guidance',()=>{
+  const report=analyzeOpportunities(normalizeOpportunityInput(raw));
+  const ideas=validateIdeas({ideas:[{
+    topic:'Cricket 26',referenceId:'d',title:'Cricket 26 — A New Match Format',hook:'What if we try a different match?',
+    why:'Fans will keep watching longer',measure:'Compare 7-day views against 250 lifetime views'
+  }]},report);
+  assert.doesNotMatch(ideas[0].why,/keep watching/i);
+  assert.doesNotMatch(ideas[0].measure,/250 lifetime/);
+  assert.match(ideas[0].measure,/other day-7 results/);
 });
