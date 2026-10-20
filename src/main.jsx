@@ -263,7 +263,7 @@ function App(){
     finally {setBusy(false);}
   }
   function showDemo(){setData(demoData);switchTab('overview');setQuery('');setError('');}
-  return <div className="app">
+  return <div className={"app theme-"+activeWorkspace.id} data-page={tab}>
     <aside className={'sidebar'+(menu?' sidebar-open':'')}>
       <div className="brand"><div className="brand-icon"><Youtube size={25}/></div><div><strong>channel<span>scope</span></strong><small>CREATOR INTELLIGENCE</small></div></div>
       <div className="side-label">CHOOSE YOUR PLATFORM</div>

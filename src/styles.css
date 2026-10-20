@@ -246,3 +246,118 @@ footer {margin-top:36px;border-top:1px solid #303141;padding-top:22px;display:fl
   .sidebar-note{padding:14px}
   .side-footer{padding-top:14px}
 }
+
+
+/* ChannelScope atmosphere: platform-specific color, one consistent dark system.
+   All decoration is CSS-only, behind content and never catches pointer events. */
+.app {
+  --theme-accent:#ff7898;
+  --theme-top:#0c1120;
+  --theme-halo-a:rgba(242,83,116,.145);
+  --theme-halo-b:rgba(65,110,190,.105);
+  --theme-page-glow:rgba(184,74,133,.06);
+  --theme-sidebar-glow:rgba(231,77,107,.075);
+  --theme-border:rgba(244,118,149,.12);
+  background:#0b0e17;
+}
+.app.theme-youtube {
+  --theme-accent:#ff7189;
+  --theme-top:#0b1220;
+  --theme-halo-a:rgba(240,69,100,.16);
+  --theme-halo-b:rgba(54,97,184,.12);
+  --theme-sidebar-glow:rgba(244,87,111,.085);
+  --theme-border:rgba(253,113,144,.15);
+}
+.app.theme-instagram {
+  --theme-accent:#e8a0f5;
+  --theme-top:#151021;
+  --theme-halo-a:rgba(230,77,151,.19);
+  --theme-halo-b:rgba(124,76,221,.17);
+  --theme-sidebar-glow:rgba(172,77,209,.14);
+  --theme-border:rgba(215,115,228,.2);
+}
+.app.theme-creator {
+  --theme-accent:#91d6e8;
+  --theme-top:#0b1423;
+  --theme-halo-a:rgba(52,166,195,.15);
+  --theme-halo-b:rgba(103,84,212,.16);
+  --theme-sidebar-glow:rgba(62,146,184,.095);
+  --theme-border:rgba(113,195,214,.17);
+}
+/* These finer glows give each tool its own identity while sharing its platform. */
+.app[data-page="overview"] {--theme-page-glow:rgba(70,137,227,.12)}
+.app[data-page="videos"] {--theme-page-glow:rgba(76,112,205,.11)}
+.app[data-page="compare"] {--theme-page-glow:rgba(118,100,213,.13)}
+.app[data-page="insights"] {--theme-page-glow:rgba(88,139,220,.125)}
+.app[data-page="advisor"] {--theme-page-glow:rgba(190,90,183,.13)}
+.app[data-page="optimizer"] {--theme-page-glow:rgba(254,104,133,.155)}
+.app[data-page="opportunities"] {--theme-page-glow:rgba(178,92,215,.145)}
+.app[data-page="instagram"] {--theme-page-glow:rgba(243,86,167,.155)}
+.app[data-page="social"] {--theme-page-glow:rgba(86,185,205,.125)}
+.app[data-page="calendar"] {--theme-page-glow:rgba(112,112,241,.135)}
+.app .main {
+  position:relative;
+  isolation:isolate;
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse 520px 350px at 88% 10%,var(--theme-page-glow),transparent 78%),
+    radial-gradient(ellipse 64% 490px at 86% 0%,var(--theme-halo-a),transparent 73%),
+    radial-gradient(ellipse 57% 490px at 6% 22%,var(--theme-halo-b),transparent 79%),
+    linear-gradient(160deg,var(--theme-top) 0%,#0b0e18 64%,#0a0d16 100%);
+}
+/* A barely perceptible editorial grid anchors the empty spaces.
+   Bound its height so very long calendars don't create enormous overlays. */
+.app .main::before {
+  content:"";
+  position:absolute;
+  top:0;left:0;right:0;height:760px;
+  pointer-events:none;
+  z-index:0;
+  background-image:
+    linear-gradient(to right,rgba(214,224,255,.038) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(214,224,255,.038) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.52),transparent 92%);
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.52),transparent 92%);
+}
+.app .main>.topbar,.app .main>.content {position:relative;z-index:1}
+.app .topbar {
+  background:rgba(14,17,29,.75);
+  border-bottom:1px solid var(--theme-border);
+  -webkit-backdrop-filter:blur(15px);
+  backdrop-filter:blur(15px);
+}
+.app .sidebar {
+  background:
+    radial-gradient(ellipse 112% 42% at 7% 0%,var(--theme-sidebar-glow),transparent 83%),
+    #11131d;
+}
+.app .workspace-choice.active {
+  border-color:var(--theme-accent);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.035);
+}
+.app .workspace-choice.active .workspace-arrow,
+.app .crumb-platform,.app .page-heading .eyebrow {color:var(--theme-accent)}
+.app .nav-btn.selected {
+  color:var(--theme-accent);
+  background:color-mix(in srgb,var(--theme-accent) 11%,transparent);
+}
+.app .nav-btn.selected::before {background:var(--theme-accent)}
+.app .page-heading .accent {color:var(--theme-accent)}
+.app .workspace-subhead {color:color-mix(in srgb,var(--theme-accent) 78%,#a5a9ba)}
+.app .sidebar-note {border-color:color-mix(in srgb,var(--theme-accent) 13%,#333042)}
+.app .sidebar-note svg {color:var(--theme-accent)}
+@media (max-width:820px) {
+  .app .main {
+    background:
+      radial-gradient(ellipse 82% 320px at 98% 4%,var(--theme-page-glow),transparent 75%),
+      radial-gradient(ellipse 95% 380px at 80% 0%,var(--theme-halo-a),transparent 80%),
+      radial-gradient(ellipse 85% 370px at 0% 20%,var(--theme-halo-b),transparent 80%),
+      linear-gradient(160deg,var(--theme-top),#0a0d17 77%);
+  }
+  .app .main::before {height:510px;background-size:40px 40px}
+}
+@media (prefers-reduced-transparency:reduce) {
+  .app .topbar {background:#141725;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .app .main::before {display:none}
+}
