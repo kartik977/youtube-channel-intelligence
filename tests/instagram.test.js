@@ -54,7 +54,7 @@ test('Rejects invented qualifications and bios longer than 150 characters',()=>{
   assert.equal(safeBio('a'.repeat(151),bio),null);
   const text=safeBio('🎮 PS5 gaming\n🏏 Cricket 26\nCome hang out!',bio);
   assert.ok(text.includes('\n'));
-  assert.equal(Array.from(text).length,45);
+  assert.equal(Array.from(text).length,40);
 });
 test('AI Bio suggestions are character-limited and fallback fills partial response',()=>{
   const brief=normalizeInstagramBrief(bio),backup=freeInstagramPack(brief);
