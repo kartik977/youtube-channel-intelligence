@@ -60,7 +60,7 @@ test('Fresh angles are distinct and remain within the same niche',()=>{
 test('CSV correctly quotes commas and ICS uses all-day dates without posting times',()=>{
   const plan=createContentCalendar({...config,niche:'Travel, food and local experiences'});
   const csv=calendarToCSV(plan),ics=calendarToICS(plan),plain=calendarToText(plan);
-  assert.match(csv,/\"Travel, food and local experiences/);
+  assert.match(csv,/\"[^\"\r\n]*Travel, food and local experiences\"/);
   assert.equal(csv.split('\r\n').length,plan.slots.length+2);
   assert.match(ics,/BEGIN:VCALENDAR\r\n/);
   assert.equal((ics.match(/BEGIN:VEVENT/g)||[]).length,plan.slots.length);
