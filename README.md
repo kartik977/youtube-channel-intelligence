@@ -205,3 +205,29 @@ Topic names prioritize recognized games/series instead of overlapping hashtags o
 Every recommendation includes **Why this idea?**, a link to an actual upload in the sampled channel data, and its public lifetime-view count. Groq's creative suggestion is accepted only when it identifies an existing topic *and* a real supporting video ID from that topic. Unsupported/unrelated/hype ideas fall back to deterministic, source-linked suggestions. The reason and metrics are written by the deterministic backend from the actual sample, not by Groq.
 
 **Fair comparisons:** ChannelScope never compares the day-seven views of a new upload with *lifetime* medians from older videos. The UI reports descriptive lifetime medians separately and recommends recording seven-day views in YouTube Studio to compare with **other seven-day** results (if available). It does not claim that it can read such historical snapshots from the public YouTube API. A small, single-timepoint sample cannot establish demand, video retention, expected view growth or cause.
+
+
+## Instagram Studio — Bios and Hashtags (free-tier drafting)
+
+**Instagram Studio** is now a separate sidebar page. It works immediately, **without searching for or connecting a YouTube channel**. The YouTube channel-search row and demo-data notice are hidden while this tab is open.
+
+### Bio Generator
+1. Select **Instagram Bio**.
+2. Describe yourself, your work, or your content in your own words (minimum 8 characters). Optionally specify your profile type (creator, personal, business), profile name, audience, and preferred writing tone.
+3. Select **Generate Instagram bios** to receive three distinct bios, each checked to stay within **150 Unicode code points** including spaces and line breaks. Copy any bio directly to edit/paste in Instagram.
+
+Generated bios are drafts, not verified identity or credentials. The validator rejects common invented claims such as unmentioned certifications, awards, or follower milestones.
+
+### Instagram Hashtag Generator
+1. Select **Hashtag Generator** and choose Post or Reel.
+2. Describe the content and optional audience, then select **Find relevant hashtags**.
+3. Review up to five **recommended** tags and three **alternative** niche or topic tags, each with a short explanation. Copy one tag, the recommended set or all tags.
+4. Remove anything inaccurate. Tags are based on the provided description, **not** live Instagram trends, measured search volumes, hashtag competition, follower demographics, ranking scores, or promises of more reach.
+
+### Free by default
+
+No Instagram login, Instagram API token, image generation, social account permissions, or new paid service is necessary. The new endpoint is **POST /api/instagram** and uses the **existing optional \`GROQ_API_KEY\`** on the Cloudflare Worker, subject to any Groq free-tier limits. Without a key, or when the model is unavailable, Instagram Studio still produces clearly labeled **FREE DRAFT MODE** suggestions from the creator's provided description. Partial AI output may show **AI + TEMPLATES**.
+
+The page only drafts text; it **does not post**, connect to Instagram or collect private Instagram statistics. Any submitted text may be sent to Groq when AI is enabled. Verify the result before publishing. ChannelScope is an independent project and is not affiliated with Instagram or Meta.
+
+Validate with \`npm test\` and \`npm run build\`. Cloudflare deploys the current \`main\` branch through the existing Worker integration; no new secret is required.
