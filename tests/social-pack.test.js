@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import {safeCaption} from '../functions/api/instagram-quality.js';
 import {normalizeInstagramBrief,freeInstagramPack,validateInstagramAI} from '../functions/api/instagram.js';
 import {normalizeSocialBrief,freeSocialPack,validateSocialAI,onRequestPost} from '../functions/api/social-pack.js';
+import {detectContentType,sceneFromDescription,freeYoutubeCopy,groundedCopy,groundedTitle} from '../functions/api/social-quality.js';
 import worker from '../worker/index.js';
 
 const description='A Halloween decor video in Plano, Texas with colorful lights and ghostly figures.';
@@ -150,4 +151,92 @@ test('Worker routes new POST and preserves Instagram and static assets',async()=
   assert.equal(await response.text(),'static asset');
   response=await worker.fetch(new Request('https://channelscope.example/api/instagram'),env,ctx);
   assert.equal(response.status,405);
+});
+
+
+test('Showcase inferred from Halloween house décor rather than an instructional video',()=>{
+  const brief=normalizeSocialBrief({...common,description:'Halloween decor at a plano house.',topic:''});
+  assert.equal(detectContentType(brief),'showcase');
+  assert.equal(sceneFromDescription(brief),'Halloween decorations at a home in Plano');
+  const pack=freeSocialPack(brief);
+  assert.equal(pack.contentType,'showcase');
+  assert.equal(pack.youtube.title,'Halloween decorations at a home in Plano');
+  assert.doesNotMatch(pack.youtube.description,/short video about|plano house|how to|tips|guide|diy/i);
+  assert.match(pack.youtube.description,/Halloween decorations at a home in Plano/);
+  assert.match(pack.youtube.hook,/Take a look/);
+  assert.doesNotMatch(pack.youtube.hook,/turn your|masterpiece|tutorial/i);
+});
+
+test('AI hallucinated showcase tutorial title and transformative hook trigger hybrid replacements',()=>{
+  const brief=normalizeSocialBrief({...common,description:'Halloween decor at a plano house.',topic:''});
+  const fallback=freeSocialPack(brief);
+  const pack=validateSocialAI({
+    instagram:{caption:'Spooky Halloween decorations in Plano. 🎃'},
+    youtube:{
+      title:'Halloween Decor Ideas for a Plano Home',
+      description:'Short video about Halloween decor at a plano house.',
+      hook:'Ready to turn your Plano home into a Halloween masterpiece?'
+    }
+  },brief,fallback);
+  assert.equal(pack.mode,'hybrid');
+  assert.equal(pack.youtube.title,fallback.youtube.title);
+  assert.equal(pack.youtube.hook,fallback.youtube.hook);
+  assert.doesNotMatch(pack.youtube.description,/Short video about/);
+  assert.equal(pack.contentType,'showcase');
+});
+
+test('AI factual showcase without details does not invent lights, ghosts or pumpkins',()=>{
+  const brief=normalizeSocialBrief({...common,description:'Halloween decor at a plano house.',topic:''});
+  for(const madeUp of [
+    'Halloween decor with ghostly figures at a Plano home.',
+    'Halloween decorations with glowing lights at a Plano house.',
+    'Halloween pumpkins and skeletons in Plano.'
+  ]){
+    assert.equal(groundedCopy(madeUp,brief),false,madeUp);
+  }
+  assert.equal(groundedCopy('Halloween decorations at a home in Plano.',brief),true);
+  const withLights=normalizeSocialBrief({...common,description:'Halloween lights and ghostly figures outside a Plano home.',topic:''});
+  assert.equal(groundedCopy('Halloween lights and ghostly figures outside a Plano home.',withLights),true);
+});
+
+test('Honest tutorial, review and gameplay briefs retain their content-specific framing',()=>{
+  const tutorial=normalizeSocialBrief({...common,
+    description:'A step-by-step tutorial showing how to decorate a pumpkin for Halloween.',topic:''});
+  const review=normalizeSocialBrief({...common,
+    description:'A review of the new phone based on my hands-on impressions.',topic:''});
+  const gameplay=normalizeSocialBrief({...common,
+    description:'PS5 gameplay from Call of Duty Modern Warfare with a short match clip.',topic:''});
+  const other=normalizeSocialBrief({...common,
+    description:'An original poem about finding hope through change.',topic:''});
+  assert.equal(detectContentType(tutorial),'tutorial');
+  assert.equal(detectContentType(review),'review');
+  assert.equal(detectContentType(gameplay),'gameplay');
+  assert.equal(detectContentType(other),'other');
+  assert.ok(groundedTitle('Halloween pumpkin tutorial | How to decorate',tutorial));
+  assert.ok(groundedTitle('My phone review: first impressions',review));
+  assert.equal(groundedTitle('Call of Duty: Gameplay Showcase',gameplay),true);
+  assert.equal(groundedTitle('How to Win Every Call of Duty Match',gameplay),false);
+  assert.equal(groundedTitle('Halloween Decor Tutorial in Plano',normalizeSocialBrief({...common,topic:''})),false);
+  for(const brief of [tutorial,review,gameplay,other]){
+    const out=freeYoutubeCopy(brief);
+    assert.equal(out.contentType,detectContentType(brief));
+    assert.ok(out.title.length>=8);
+    assert.ok(out.description.length>=18);
+  }
+});
+
+test('Grounded showcase AI can still be fully AI-generated',()=>{
+  const brief=normalizeSocialBrief({...common,description:'Halloween decor at a plano house.',topic:''});
+  const backup=freeSocialPack(brief);
+  const result=validateSocialAI({
+    instagram:{caption:'Spooky Halloween decor at a Plano home! 🎃'},
+    youtube:{
+      title:'Halloween Decor at a Plano Home 🎃',
+      description:'Halloween decorations at a home in Plano. Take a look at the festive display.',
+      hook:'Check out this Halloween decor at a home in Plano!'
+    }
+  },brief,backup);
+  assert.equal(result.mode,'ai');
+  assert.equal(result.contentType,'showcase');
+  assert.ok(result.youtube.description.includes('Halloween'));
 });

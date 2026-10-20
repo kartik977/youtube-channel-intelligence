@@ -112,6 +112,7 @@ export default function SocialPublishing(){
           </article>
           <article className="sp-card">
             <div className="sp-card-header"><div><Youtube size={22}/><h3>YouTube Short</h3></div><span>Title + description + hook</span></div>
+            <p className="sp-intent">Detected content: <strong>{{showcase:'Showcase / display',tutorial:'How-to / tutorial',review:'Review',gameplay:'Gameplay',other:'General video'}[report.contentType]||'General video'}</strong> <span>· based on your description</span></p>
             <div className="sp-field"><small>TITLE ({Array.from(report.youtube.title).length}/100)</small>
               <p>{report.youtube.title}</p></div>
             <div className="sp-field"><small>DESCRIPTION</small><p>{report.youtube.description}</p></div>

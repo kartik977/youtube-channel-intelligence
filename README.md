@@ -259,3 +259,14 @@ The results include:
 Uses **POST /api/social-pack**, using the already-configured optional Groq free-tier key. Without Groq, the system returns free platform-specific templates. Incomplete/unverified Groq data is partially salvaged and clearly labeled as **AI + TEMPLATES**; errors or rate limits fall back without leaking secrets. No platform publishing, scraping, user-account access, extra subscription, or trend/success data is involved.
 
 **Caption consistency and integrity:** Instagram Caption Generator and Hashtag Generator now share the same deterministic top-five hashtags for an identical brief. Groq can provide additional alternatives in Hashtag Generator but cannot displace the canonical five. Backend text validation rejects first-person claims such as "I just filmed this" or "We visited" unless the description clearly says the creator filmed or visited. It is still a heuristic; review every generated draft before using it.
+
+
+### Social Publishing 1.1 — natural, intent-aware YouTube Shorts drafts
+
+The Social Publishing assistant now **infers the described content type** from the creator's written brief: **showcase/display**, **tutorial**, **review**, **gameplay**, or **general video**. It labels the inferred type on the YouTube Short result. The classification is heuristic and does not inspect actual footage.
+
+The YouTube title, description and opening hook each honor that detected intent. A Halloween decoration showcase now receives neutral showcase wording rather than "Halloween Decor Ideas" or "turn your home into...", which imply a how-to tutorial. Explicitly described tutorials, reviews, and gameplay still receive appropriate wording.
+
+The free fallback produces natural titles, correctly capitalizes recognized places (for example Plano, Texas), and avoids robotic lead-ins such as "Short video about...". The same safeguards also check Groq suggestions. They reject unsupported claims of instructional content, invented outcomes, filming/ownership, and specific unseen props such as ghosts, pumpkins or special lighting. Rejected AI fields are replaced independently with truthful free templates and labeled **AI + TEMPLATES**.
+
+This is not factual verification and cannot see the clip itself: creators should review and edit every draft before posting. These changes do not require a new API key, paid service, social login or change to existing endpoints.
