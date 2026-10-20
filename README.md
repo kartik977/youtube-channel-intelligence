@@ -196,3 +196,12 @@ This route is \`POST /api/opportunities\`. The deterministic topic analysis and 
 Livestream and gameplay titles continue to avoid unwarranted educational claims. Server-side heuristics now also reject unsupported promises about "cinematic moments", "intense action" or similar unseen footage just because the creator selected a cinematic *writing style*. For a game stream involving an in-game attack, a bare tag like \`#SeoulBombing\` could be mistaken for real news; it is omitted in favor of accurate game/series and gaming-format hashtags when relevant.
 
 These safeguards are approximations and cannot fact-check actual footage. They do **not** measure actual trending hashtags, search volume, impressions, retention or click-through rate. Users must review all generated titles and descriptions before publishing.
+
+
+## Content Opportunities 2.0 — explainable recommendations
+
+Topic names prioritize recognized games/series instead of overlapping hashtags or single generic words. For example \`Cricket 26\` videos with \`#cricketlover\` remain in the same \`Cricket 26\` theme, and \`007 First Light\` is recognized as a game rather than a topic called \`Light\`. Each video belongs to **one** group; an "Other sampled topics" group preserves the remaining sample.
+
+Every recommendation includes **Why this idea?**, a link to an actual upload in the sampled channel data, and its public lifetime-view count. Groq's creative suggestion is accepted only when it identifies an existing topic *and* a real supporting video ID from that topic. Unsupported/unrelated/hype ideas fall back to deterministic, source-linked suggestions. The reason and metrics are written by the deterministic backend from the actual sample, not by Groq.
+
+**Fair comparisons:** ChannelScope never compares the day-seven views of a new upload with *lifetime* medians from older videos. The UI reports descriptive lifetime medians separately and recommends recording seven-day views in YouTube Studio to compare with **other seven-day** results (if available). It does not claim that it can read such historical snapshots from the public YouTube API. A small, single-timepoint sample cannot establish demand, video retention, expected view growth or cause.
