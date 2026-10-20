@@ -10,7 +10,7 @@
 .ig-editor,.ig-output{border:1px solid #3c3d52;border-radius:16px;padding:23px;background:#1b1d2c;min-width:0}
 .ig-editor>h2{font-size:19px;display:flex;align-items:center;gap:10px;margin:0 0 22px}
 .ig-editor>h2 svg{color:#fd83a0}
-.ig-kind-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:20px}
+.ig-kind-group{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:20px}
 .ig-kind-group button{display:flex;flex-direction:column;align-items:flex-start;gap:10px;border:1px solid #47465a;background:#252738;color:#d4d1df;border-radius:11px;padding:17px 14px;cursor:pointer;text-align:left;font-weight:800;font-size:12px}
 .ig-kind-group button svg{color:#bdacde}
 .ig-kind-group button.active{background:linear-gradient(130deg,#583046,#33283d);border-color:#f482a0;color:white;box-shadow:inset 0 0 0 1px #f482a01e}
@@ -70,3 +70,15 @@
 .ig-output-note svg{flex-shrink:0;margin-top:1px;color:#eaa2ba}
 @media(max-width:1170px){.ig-workspace{grid-template-columns:1fr}}
 @media(max-width:600px){.ig-editor,.ig-output,.ig-intro{padding:16px}.ig-tags{grid-template-columns:1fr}.ig-intro h2{font-size:19px}.ig-tag-alt{flex-wrap:wrap}.ig-tag-alt span{flex-basis:65%}}
+
+
+/* Caption Studio sits beside Bio and Hashtag mode in the same responsive workspace. */
+.ig-kind-group button{min-width:0;min-height:110px;gap:9px}
+.ig-kind-group button small{line-height:1.4}
+.ig-caption-card{padding:19px;border-radius:13px;border:1px solid #62485f;background:linear-gradient(135deg,#292338,#222433)}
+.ig-caption-text{font-size:15px;line-height:1.8;white-space:pre-wrap;color:#f4ecf6;overflow-wrap:anywhere;margin:17px 0}
+.ig-caption-tags{display:flex;flex-wrap:wrap;gap:8px;padding-top:14px;border-top:1px solid #483c4f}
+.ig-caption-tags span{font-size:11px;color:#f7a3c1;background:#37283f;border:1px solid #67485c;border-radius:20px;padding:6px 10px;overflow-wrap:anywhere}
+.ig-caption-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+@media(max-width:720px){.ig-kind-group{grid-template-columns:repeat(3,minmax(0,1fr))}.ig-kind-group button{padding:12px 8px;font-size:10px}.ig-kind-group button small{font-size:9px}}
+@media(max-width:380px){.ig-kind-group{grid-template-columns:1fr}.ig-kind-group button{min-height:0}}
