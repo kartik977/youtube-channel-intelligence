@@ -1,4 +1,5 @@
 import {normalizeCalendarBrief,createContentCalendar} from '../../src/content-calendar-plan.js';
+import {classifyCalendarNiche} from '../../src/calendar-ideas.js';
 
 // Optional existing free-tier Groq account adds better topic-specific ideas.
 // Never infers engagement, trending topics, proven posting days or owned footage.
@@ -39,7 +40,15 @@ function parseGroqIdeas(raw){
     throw Object.assign(Error('invalid JSON'),{code:'incomplete'});
   }
 }
-const meaningfulTitle=/\b(?:game|games|gaming|gameplay|play|challenge|compare|comparison|opening|strategy|mission|level|match|tutorial|review|testing|test|recipe|cook|travel|fitness|workout|tech|camera|food|fashion|style|photo|experience|story|tips)\b|\bPS[345]\b/i;
+const categoryTitle={
+  gaming:/\\b(?:game|games|gaming|gameplay|play|challenge|compare|comparison|opening|strategy|mission|level|match|controller|console|ps[345]|xbox|cricket|minecraft|fortnite|fifa)\\b/i,
+  travel:/\\b(?:travel|trip|city|tour|destination|route|scenic|view|journey|visit)\\b/i,
+  food:/\\b(?:food|recipe|cook|taste|meal|ingredient|bake|kitchen)\\b/i,
+  fitness:/\\b(?:fitness|workout|gym|exercise|training|running|movement)\\b/i,
+  tech:/\\b(?:tech|app|code|coding|software|python|debug|tool|feature|developer)\\b/i,
+  lifestyle:/\\b(?:fashion|outfit|style|makeup|skin|beauty|routine|look)\\b/i,
+  general:/\\b(?:challenge|compare|story|experience|question|review|spotlight|try|guide|show)\\b/i
+};
 export function validateAIPlan(payload,plan){
   if(!Array.isArray(payload?.ideas))throw Error('incomplete');
   const nicheWords=keywords(plan.config.niche).filter(w=>!['different','highlights','around'].includes(w));
@@ -52,7 +61,7 @@ export function validateAIPlan(payload,plan){
     if(!title||title.length<10||idea.length<22||hook.length<12||!cta||unsafe.test([title,idea,hook,cta].join(' '))||generic.test([title,idea,hook].join(' ')))continue;
     const titleGrounded=nicheWords.some(w=>title.toLowerCase().includes(w));
     const explanationGrounded=nicheWords.some(w=>idea.toLowerCase().includes(w));
-    if(nicheWords.length&&!titleGrounded&&!(explanationGrounded&&meaningfulTitle.test(title)))continue;
+    if(nicheWords.length&&!titleGrounded&&!(explanationGrounded&&categoryTitle[classifyCalendarNiche(plan.config.niche)].test(title)))continue;
     if(seen.has(title.toLowerCase()))continue;
     seen.add(title.toLowerCase());
     valid.push({title,idea,hook,callToAction:cta});
