@@ -231,3 +231,16 @@ No Instagram login, Instagram API token, image generation, social account permis
 The page only drafts text; it **does not post**, connect to Instagram or collect private Instagram statistics. Any submitted text may be sent to Groq when AI is enabled. Verify the result before publishing. ChannelScope is an independent project and is not affiliated with Instagram or Meta.
 
 Validate with \`npm test\` and \`npm run build\`. Cloudflare deploys the current \`main\` branch through the existing Worker integration; no new secret is required.
+
+
+## Instagram Studio 2.0 — Caption Generator and safer hashtag relevance
+
+Instagram Studio now offers **three tools on the same page**:
+
+- **Bio Generator:** three copy-ready bios (150-character validation), unchanged.
+- **Caption Generator:** describe the real photo, post, or Reel, pick Friendly, Professional, Bold, or Minimal, and create **three distinct captions**. Each comes with a short set of topic-matched hashtags. Copy either the caption alone or caption + hashtags in one click. No image upload, visual analysis, or Instagram login is needed.
+- **Hashtag Generator:** adds semantic de-duplication and better subject/location checks. For “Halloween decoration in Plano,” it rejects \`#HalloweenDIY\` unless the description confirms a DIY craft; \`#PlanoEvents\` unless it really describes an event; and \`#PlanoTexas\` unless Texas is in the brief. It also avoids redundant duplicates such as \`#HalloweenPlano\` and \`#PlanoHalloween\`.
+
+**Endpoint:** the existing \`POST /api/instagram\` now accepts \`kind: "caption"\`; it continues to support \`kind: "bio"\` and \`kind: "hashtags"\`. Captions and tag suggestions use the existing optional Groq free-tier key and explicitly labeled free templates if the provider is missing or rate-limited. Partial valid output is labeled AI + TEMPLATES. No new services, credentials, or subscription costs.
+
+**Truthful content:** captions are draft text; they must not imply unseen activities, organized events, sponsorships, homemade decorations, or achievements not mentioned by the creator. The server applies conservative validation in addition to the model prompt, but all AI output needs review before posting. Hashtag relevance is heuristic, not measured trend popularity, Instagram hashtag reach, or guaranteed follower growth.
