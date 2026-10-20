@@ -44,7 +44,11 @@ const unsupportedClaims=[
   {pattern:/\b(?:diy|handmade|homemade|made (?:my|our|these) own)\b/i,evidence:/\bdiy\b|handmade|homemade|i made|we made|crafted|built/i},
   {pattern:/\b(?:official event|festival|community event|tickets|party|parade|meetup)\b/i,evidence:/\bevent\b|festival|ticket|party|parade|meetup/i},
   {pattern:/\b(?:award[- ]winning|best in town|biggest|most popular|number one|world famous|sold out)\b/i,evidence:/award[- ]winning|best in town|biggest|most popular|number one|world famous|sold out/i},
-  {pattern:/\b(?:sponsored|paid partnership|giveaway)\b/i,evidence:/sponsored|paid partnership|giveaway/i}
+  {pattern:/\b(?:sponsored|paid partnership|giveaway)\b/i,evidence:/sponsored|paid partnership|giveaway/i},
+  {pattern:/\b(?:i|we) (?:just |recently |finally )?(?:filmed|shot|recorded|captured|visited|attended|made|created|built|designed)\b/i,
+    evidence:/\b(?:i|we|my|our) (?:just |recently |finally )?(?:filmed|shot|recorded|captured|visited|attended|made|created|built|designed)\b/i},
+  {pattern:/\b(?:my|our) (?:video|reel|photo|creation|design|homemade)\b/i,
+    evidence:/\b(?:my|our|i|we)\b/i}
 ];
 export function safeCaption(text,brief){
   if(typeof text!=='string')return null;

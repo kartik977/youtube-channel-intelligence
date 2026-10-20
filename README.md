@@ -244,3 +244,18 @@ Instagram Studio now offers **three tools on the same page**:
 **Endpoint:** the existing \`POST /api/instagram\` now accepts \`kind: "caption"\`; it continues to support \`kind: "bio"\` and \`kind: "hashtags"\`. Captions and tag suggestions use the existing optional Groq free-tier key and explicitly labeled free templates if the provider is missing or rate-limited. Partial valid output is labeled AI + TEMPLATES. No new services, credentials, or subscription costs.
 
 **Truthful content:** captions are draft text; they must not imply unseen activities, organized events, sponsorships, homemade decorations, or achievements not mentioned by the creator. The server applies conservative validation in addition to the model prompt, but all AI output needs review before posting. Hashtag relevance is heuristic, not measured trend popularity, Instagram hashtag reach, or guaranteed follower growth.
+
+
+## Social Publishing Assistant — one description, two platforms
+
+Open **Social Publishing** from the sidebar. It is separate from YouTube channel research and requires **no YouTube or Instagram sign-in**. Enter one factual description of your video or planned Short, with optional working title, intended audience, and tone. Select **Generate both drafts**.
+
+The results include:
+
+- **Instagram Reel:** a social, conversational caption and up to five relevant hashtags, with buttons to copy the caption or the complete Instagram pack.
+- **YouTube Short:** an independently written, natural title (up to 100 Unicode characters), an honest Short description, a first-seconds hook, and relevant hashtags including \`#Shorts\`. Copy the title or complete YouTube pack.
+- **Copy both platform drafts:** combine Instagram and YouTube text in a labeled clipboard document.
+
+Uses **POST /api/social-pack**, using the already-configured optional Groq free-tier key. Without Groq, the system returns free platform-specific templates. Incomplete/unverified Groq data is partially salvaged and clearly labeled as **AI + TEMPLATES**; errors or rate limits fall back without leaking secrets. No platform publishing, scraping, user-account access, extra subscription, or trend/success data is involved.
+
+**Caption consistency and integrity:** Instagram Caption Generator and Hashtag Generator now share the same deterministic top-five hashtags for an identical brief. Groq can provide additional alternatives in Hashtag Generator but cannot displace the canonical five. Backend text validation rejects first-person claims such as "I just filmed this" or "We visited" unless the description clearly says the creator filmed or visited. It is still a heuristic; review every generated draft before using it.
