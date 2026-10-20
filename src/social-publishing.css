@@ -49,3 +49,7 @@
 .sp-note svg{flex-shrink:0;margin-top:2px}
 @media(max-width:1150px){.sp-columns{grid-template-columns:1fr}}
 @media(max-width:600px){.sp-editor,.sp-output,.sp-banner{padding:17px}.sp-banner h2{font-size:19px}.sp-card{padding:15px}}
+
+.sp-intent{display:flex;align-items:center;flex-wrap:wrap;gap:5px;font-size:10px;color:#b5b7c9;margin:14px 0 0}
+.sp-intent strong{font-size:10px;color:#b6e9d2;background:#253a39;border:1px solid #52796d;border-radius:20px;padding:5px 8px}
+.sp-intent span{color:#898fa5}
