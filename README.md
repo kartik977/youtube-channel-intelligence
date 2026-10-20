@@ -325,3 +325,16 @@ The workspace pages use stable, shareable hash URLs that work on the existing Cl
 
 Browser back/forward and direct links select the matching workspace and page. Older simple hashes are still recognized. The design includes a scrollable sidebar and mobile menu, and it preserves **Content Calendar → Video Optimizer** with the planned-video context and all existing backend endpoints. No authentication, new dependencies, API keys, pricing changes or migrations are required.
 
+
+
+### Platform-specific backgrounds (YouTube, Instagram, Creator Tools)
+
+ChannelScope now applies an ambient background theme automatically from the selected workspace, without changing tool functionality, pricing, API calls or account connections:
+
+- **YouTube:** deep midnight-navy with restrained coral/red and blue highlights. Each analysis/strategy page has its own very subtle secondary glow.
+- **Instagram:** dark violet and soft magenta accents for Instagram Studio.
+- **Creator Tools:** deep ink blue with teal-violet lighting for cross-platform Social Publishing and Content Calendar.
+
+The atmospheric effect is made entirely with lightweight **CSS radial gradients**, a faint non-interactive grid texture near the top of each page, and scoped accent colors in the active sidebar/breadcrumb. It does not require external images, expensive motion, additional network requests or new packages. The textured overlay cannot intercept clicks; mobile uses scaled-down gradients, and reduced-transparency preferences hide the texture and retain an opaque toolbar.
+
+Page deep links, Calendar → Optimizer handoff, and YouTube/Instagram/Creator Tools navigation continue to work.
