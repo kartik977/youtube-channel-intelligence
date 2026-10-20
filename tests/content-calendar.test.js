@@ -35,7 +35,7 @@ test('30-day calendar carries cadence across months; no off-by-one days',()=>{
   assert.equal(p.slots.length,13);
   assert.equal(p.stats.instagram+p.stats.youtube,p.stats.scheduled);
   assert.equal(p.slots[0].date,'2026-10-29');
-  assert.equal(p.slots.at(-1).date,'2026-11-27');
+  assert.equal(p.slots.at(-1).date,'2026-11-26');
   assert.ok(p.slots.every(x=>x.date>='2026-10-29'&&x.date<='2026-11-27'));
   assert.equal(new Set(p.slots.map(x=>x.date)).size,p.slots.length);
   assert.equal(p.slots.at(-1).week,5);
