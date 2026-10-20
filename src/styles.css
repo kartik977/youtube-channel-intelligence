@@ -361,3 +361,50 @@ footer {margin-top:36px;border-top:1px solid #303141;padding-top:22px;display:fl
   .app .topbar {background:#141725;-webkit-backdrop-filter:none;backdrop-filter:none}
   .app .main::before {display:none}
 }
+
+
+/* A first-visit home has its own neutral, welcoming atmosphere. */
+.app.theme-landing {
+  --theme-accent:#eea3cb;
+  --theme-top:#101523;
+  --theme-halo-a:rgba(202,95,161,.16);
+  --theme-halo-b:rgba(70,133,211,.14);
+  --theme-page-glow:rgba(185,105,225,.10);
+  --theme-sidebar-glow:rgba(175,97,173,.1);
+  --theme-border:rgba(194,135,208,.17);
+}
+.app[data-page="home"] {--theme-page-glow:rgba(167,113,218,.13)}
+.sidebar .brand-button {
+  width:100%;
+  flex-shrink:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  border-radius:12px;
+}
+.sidebar .brand-button:hover {background:#22202e}
+.sidebar .sidebar-home-link {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  width:100%;
+  padding:11px 14px;
+  margin:0 0 22px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:transparent;
+  color:#adb0c3;
+  font-size:11px;
+  font-weight:800;
+  text-align:left;
+}
+.sidebar .sidebar-home-link:hover,
+.sidebar .sidebar-home-link.selected{
+  color:#f2c1d8;
+  border-color:#665067;
+  background:#34283b;
+}
+@media(max-height:830px){
+  .sidebar .sidebar-home-link{margin-bottom:14px;padding:8px 12px}
+}
