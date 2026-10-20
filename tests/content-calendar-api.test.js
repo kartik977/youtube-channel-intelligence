@@ -35,7 +35,7 @@ test('Groq calendar idea validation admits niche specific titles and rejects vir
       hook:'What would you notice in this Cricket 26 clip?',callToAction:'Share your favorite part.'},
     {title:'Guaranteed viral video',idea:'Get a million views by breaking the algorithm.',
       hook:'Guaranteed viral!',callToAction:'Follow now!'},
-    {title:'PS5 gameplay — ask the audience',idea:'Ask fans about one gameplay detail they want to see.',
+    {title:'PS5 gaming — ask the audience',idea:'Ask fans about one gameplay detail they want to see.',
       hook:'Which PS5 moment should I show?',callToAction:'Tell me below.'},
     {title:'Unrelated baking recipe',idea:'Bake a cake with no reference to gaming.',hook:'Cook with me',callToAction:'Comment.'}
   ]},plan);
