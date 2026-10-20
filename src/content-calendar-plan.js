@@ -1,3 +1,4 @@
+import {getCalendarIdeas} from './calendar-ideas.js';
 // Offline-friendly content planning: no trend, analytics, or posting claims.
 // Dates are a user-chosen cadence, never a prediction of the best time to post.
 const goals=new Set(['consistency','engagement','growth','education']);
@@ -37,20 +38,6 @@ const goalNotes={
   growth:'Test fresh ways to present your niche; no ideas are guaranteed to grow your account.',
   education:'Share verifiable observations and explain only what you can substantiate.'
 };
-const signatures=[
-  {pillar:'Spotlight',angle:'Spotlight one real detail',action:'Pick one detail you can show or explain accurately.',hook:'Here is one detail worth noticing.',cta:'What stands out to you?'},
-  {pillar:'Question',angle:'Ask an interesting niche question',action:'Frame an honest question and let viewers share their answers.',hook:'What would you choose here?',cta:'Share your answer below.'},
-  {pillar:'Quick take',angle:'Share one observation',action:'Describe one observation based on something you actually know.',hook:'Here is one thing I noticed.',cta:'Do you see it the same way?'},
-  {pillar:'Focused moment',angle:'Showcase one specific moment',action:'Plan to capture one authentic moment rather than inventing a highlight.',hook:'Watch this moment closely.',cta:'Which part caught your attention?'},
-  {pillar:'Common question',angle:'Answer one frequently asked question',action:'Choose a question you really understand and give a grounded answer.',hook:'Here is one useful answer.',cta:'What would you ask next?'},
-  {pillar:'Mini series',angle:'Start a two-part content series',action:'Outline one focused topic now and a distinct follow-up for later.',hook:'Here is part one of a short series.',cta:'Would you like a follow-up?'},
-  {pillar:'Compare',angle:'Explore two approaches',action:'Only compare aspects you can actually demonstrate or verify.',hook:'Let us look at two options.',cta:'Which approach would you try?'},
-  {pillar:'Behind the plan',angle:'Explain how you planned the idea',action:'Share a truthful look at the process or preparation if available.',hook:'Here is how this idea came together.',cta:'What would you plan differently?'},
-  {pillar:'Checklist',angle:'Create a practical checklist',action:'Offer a short list of steps or criteria based on real expertise.',hook:'Here are a few things to check.',cta:'What would you add?'},
-  {pillar:'Opinion poll',angle:'Invite a friendly opinion',action:'Use one concrete question tied to your niche; avoid claims of a proven winner.',hook:'I am curious what you think about this.',cta:'Tell me your take.'},
-  {pillar:'Myth or fact',angle:'Clarify one common misconception',action:'Only present a myth/fact distinction if you can verify both sides.',hook:'There is a detail worth double-checking.',cta:'Have you encountered this?'},
-  {pillar:'Recap',angle:'Recap what you have actually shown',action:'Summarize real clips or points available in your own material.',hook:'Here is a quick recap.',cta:'Which moment should come next?'}
-];
 const daysOfWeek={
   2:[0,3],
   3:[0,2,4],
@@ -64,16 +51,15 @@ function platformFor(index,choice){
 export function createContentCalendar(raw,variant=0){
   const config=normalizeCalendarBrief(raw),start=dateUTC(config.startDate);
   const slots=[];
+  const ideas=getCalendarIdeas(config);
   let idx=0;
   for(let offset=0;offset<config.days;offset++){
     if(!daysOfWeek[config.perWeek].includes(offset%7))continue;
-    const rotation=(idx+(Number.isInteger(variant)&&variant>=0?variant:0))%signatures.length;
-    const sig=signatures[rotation];
+    const rotation=(idx+(Number.isInteger(variant)&&variant>=0?variant:0))%ideas.length;
+    const sig=ideas[rotation];
     const platform=platformFor(idx,config.platform);
     const date=isoDay(addDays(start,offset));
-    const subject=config.niche;
-    const subjectTitle=subject.length>58?subject.slice(0,55)+'…':subject;
-    const title=subjectTitle+' — '+sig.angle;
+    const title=sig.title;
     const note=config.goal==='education'?
       'Keep the claim verifiable and make the takeaway clear.':config.goal==='engagement'?
       'Ask a genuine question and engage with responses.':config.goal==='growth'?
@@ -81,7 +67,7 @@ export function createContentCalendar(raw,variant=0){
       'Choose a scope you can produce on schedule.';
     slots.push({
       id:'slot-'+offset,date,dayOffset:offset,week:Math.floor(offset/7)+1,
-      platform,title,idea:sig.action,hook:sig.hook+' Topic: '+subjectTitle+'.',
+      platform,title,idea:sig.action,hook:sig.hook,
       callToAction:sig.cta,pillar:sig.pillar,
       goalNote:note,status:'planned'
     });

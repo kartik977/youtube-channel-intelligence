@@ -63,7 +63,7 @@ export default function ContentCalendar(){
     }catch(e){
       try{
         const backup=createContentCalendar(cfg(),nextVariation);
-        setPlan({...backup,mode:'free',note:'Free calendar templates. AI idea generation was unavailable; the dates and prompts are still ready to use.'});
+        setPlan({...backup,mode:'free',slots:backup.slots.map(x=>({...x,source:'template'})),generation:{mode:'free',aiCount:0,templateCount:backup.slots.length,reason:'The calendar API could not be reached; using free offline ideas.'},note:'Niche-specific ideas generated locally while the calendar service was unavailable.'});
         setError('AI suggestions were unavailable; showing the free calendar instead.');
       }catch(validationError){setError(validationError.message||'Please check your settings.');}
     }finally{setBusy(false);}
@@ -161,6 +161,13 @@ export default function ContentCalendar(){
             <div><strong>{completed}</strong><small>Checked off</small></div>
           </div>
           <p className="cc-goal-note"><Target size={16}/>{plan.goalNote}</p>
+          <div className="cc-source-explainer" role="status">
+            <div className="cc-source-summary">
+              <strong>{plan.generation?.mode==='ai'?'AI ideas ready':plan.generation?.mode==='hybrid'?'AI + tailored free ideas':'Free tailored ideas ready'}</strong>
+              <span>{plan.generation?.aiCount??0} AI · {plan.generation?.templateCount??plan.slots.length} free templates</span>
+            </div>
+            <p>{plan.generation?.reason||(plan.generation?.mode==='ai'?'Groq supplied all ideas. Content is still a proposal to create, not an analysis of your videos.':'Each idea is based on your chosen niche and can be edited before filming.')}</p>
+          </div>
           <div className="cc-tools">
             <button type="button" disabled={busy} className="cc-tool" onClick={regenerate}><RefreshCw size={15} className={busy?'spin':''}/> {busy?'Thinking…':'Fresh angles'}</button>
             <button type="button" className="cc-tool" onClick={copy}>{copied?<Check size={15}/>:<Copy size={15}/>} {copied?'Copied':'Copy plan'}</button>
@@ -177,6 +184,7 @@ export default function ContentCalendar(){
                     {item.platform}</span>
                 </div>
                 <div className="cc-post-content">
+                  <div className="cc-post-meta"><span>{item.pillar}</span><span className={'cc-idea-source '+(item.source==='ai'?'ai':'')}>{item.source==='ai'?'AI idea':'Free idea'}</span></div>
                   <strong>{item.title}</strong>
                   <p>{item.idea}</p>
                   <p><b>OPENING HOOK</b> {item.hook}</p>

@@ -63,3 +63,15 @@
 .cc-disclaimer svg{flex-shrink:0;margin-top:2px}
 @media(max-width:1170px){.cc-layout{grid-template-columns:1fr}}
 @media(max-width:730px){.cc-editor,.cc-output,.cc-hero{padding:16px}.cc-posts{grid-template-columns:1fr}.cc-hero h2{font-size:19px}.cc-stats{grid-template-columns:repeat(2,1fr)}}
+
+
+/* Provenance is useful: a template should never be confused with Groq advice. */
+.cc-source-explainer{background:#252738;border:1px solid #4d455d;border-radius:11px;padding:13px 15px;margin:0 0 17px}
+.cc-source-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px}
+.cc-source-summary strong{color:#f5d4e0}
+.cc-source-summary span{color:#a4dbca;font-size:10px;font-weight:750}
+.cc-source-explainer p{font-size:10px;line-height:1.7;color:#bab3c5;margin:8px 0 0}
+.cc-post-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:11px}
+.cc-post-meta>span:first-child{font-size:9px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;color:#ebabc7}
+.cc-idea-source{font-size:9px;font-weight:750;color:#cbbac5;background:#3b3241;border:1px solid #66556b;padding:5px 8px;border-radius:20px}
+.cc-idea-source.ai{color:#a9ebce;background:#263e36;border-color:#547963}

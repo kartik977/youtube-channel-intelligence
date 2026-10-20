@@ -289,3 +289,11 @@ The plan is a *draft* rather than a guaranteed reach strategy or a real-time Ins
 The existing Social Publishing API now uses complementary writing functions: **title states the subject, description adds factual context, hook invites attention**, rather than repeating the same sentence in all three fields. A Halloween decor showcase retains cautious wording: a display at a home in Plano is not converted into a tutorial. AI outputs that repeat near-identical descriptions, titles, and hooks trigger safe field-level template substitutions, labeled **AI + TEMPLATES** as before. This preserves the existing free Groq integration and every existing API route.
 
 Automated checks cover month boundaries, leap days, cadence, all-day calendar/CSV export, invalid input, and near-duplicate AI text. Tests run via npm test, followed by npm run build.
+
+### Content Calendar 1.1 — specific ideas and honest AI status
+
+**Better even when Groq is unavailable:** The free calendar now uses niche-aware, concrete concepts: gaming (two-game comparisons, repeatable challenges, real gameplay mechanics, viewer polls), travel, food, fitness, technology and lifestyle. A general-purpose bank covers other niches. Prompts are projects to create; they never assert that footage or results already exist. The old robotic `Topic: PS5 Gaming` hooks are gone.
+
+**Groq quality filter:** The prompt asks for actionable concepts, varied openings and truthful prospective content, while the backend rejects generic filler such as `Spotlight one real detail`, `Here is one detail`, unrelated niche titles, and promised viral results. Remaining calendar slots use the free topic-specific prompts.
+
+**Clear attribution:** Every calendar response reports its `generation` status: number of AI ideas, number of free ideas, and a safe plain-English reason when Groq is absent, rate-limited, or incomplete. Each card identifies its source. The UI shows this breakdown even for partially AI-assisted 30-day plans (Groq requests up to 12 ideas, with free prompts for the remainder). It does **not** expose API keys or provider response bodies. The service is optional; the same scheduling and CSV/iCal exports remain available for free.

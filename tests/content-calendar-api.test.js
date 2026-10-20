@@ -19,6 +19,10 @@ test('Calendar endpoint keeps deterministic free plan when no Groq key is availa
   assert.equal(p.slots.length,3);
   assert.equal(p.config.startDate,brief.startDate);
   assert.equal(p.slots[0].date,'2026-10-19');
+  assert.equal(p.generation.aiCount,0);
+  assert.equal(p.generation.templateCount,3);
+  assert.match(p.generation.reason,/not configured/);
+  assert.ok(p.slots.every(x=>x.source==='template'));
 });
 test('Server validates content calendar inputs and request methods',async()=>{
   let r=await onRequestPost({request:req({...brief,days:365}),env:{}});
@@ -46,6 +50,9 @@ test('Groq calendar idea validation admits niche specific titles and rejects vir
   assert.doesNotMatch(JSON.stringify(ideas),/Guaranteed viral video/);
   assert.equal(ideas.slots[2].title,plan.slots[2].title);
   assert.equal(ideas.stats.scheduled,3);
+  assert.equal(ideas.generation.aiCount,2);
+  assert.equal(ideas.generation.templateCount,1);
+  assert.deepEqual(ideas.slots.map(x=>x.source),['ai','ai','template']);
 });
 test('Groq can personalize all slots without changing their dates or platforms',async()=>{
   const old=globalThis.fetch;
@@ -64,6 +71,9 @@ test('Groq can personalize all slots without changing their dates or platforms',
     const r=await onRequestPost({request:req(brief),env:{GROQ_API_KEY:'private-key'}});
     const p=await r.json();
     assert.equal(p.mode,'ai');
+    assert.equal(p.generation.aiCount,3);
+    assert.equal(p.generation.templateCount,0);
+    assert.ok(p.slots.every(x=>x.source==='ai'));
     assert.equal(p.slots.length,3);
     assert.deepEqual(p.slots.map(x=>x.date),['2026-10-19','2026-10-21','2026-10-23']);
     assert.deepEqual(p.slots.map(x=>x.platform),['Instagram Reel','YouTube Short','Instagram Reel']);
@@ -78,6 +88,8 @@ test('Rate limits and invalid responses fall back without leaking secrets',async
     let p=await r.json();
     assert.equal(p.mode,'free');
     assert.equal(p.aiErrorCode,'rate-limit');
+    assert.equal(p.generation.mode,'free');
+    assert.match(p.generation.reason,/rate limit/);
     assert.doesNotMatch(JSON.stringify(p),/private-key|private provider problem/);
     globalThis.fetch=async()=>Response.json({choices:[{message:{content:'{"ideas":[]}'}}]});
     r=await onRequestPost({request:req(brief),env:{GROQ_API_KEY:'private-key'}});
@@ -94,4 +106,36 @@ test('Worker exposes calendar POST and preserves methods and static site routes'
   assert.equal(res.status,405);
   res=await worker.fetch(new Request('https://channelscope.example/content-calendar'),env,ctx);
   assert.equal(await res.text(),'site');
+});
+
+
+test('Rejects generic filler AI ideas even if they repeat PS5 from the niche',()=>{
+  const plan=createContentCalendar({...brief,niche:'PS5 Gaming. Different Games'});
+  const result=validateAIPlan({ideas:[
+    {title:'PS5 Gaming — spotlight one real detail',idea:'Pick one detail you can show or explain accurately.',
+      hook:'Here is one detail worth noticing. Topic: PS5 Gaming.',callToAction:'What stands out?'},
+    {title:'PS5 opening comparison: two different games',
+      idea:'Record the first minute of two accessible PS5 games, compare the real opening moments, and invite a preference.',
+      hook:'Two PS5 games, two openings. Which one keeps you watching?',callToAction:'Vote for A or B.'}
+  ]},plan);
+  assert.equal(result.mode,'hybrid');
+  assert.equal(result.generation.aiCount,1);
+  assert.equal(result.slots[0].title,'PS5 opening comparison: two different games');
+  assert.equal(result.slots[1].source,'template');
+  assert.ok(result.slots.every(x=>!x.hook.includes('Topic:')));
+});
+test('Long 30-day calendars show AI + templates instead of falsely calling all suggestions AI',()=>{
+  const plan=createContentCalendar({...brief,days:30,perWeek:5});
+  const ideas=Array.from({length:12},(_,index)=>({
+    title:'PS5 comparison '+(index+1)+': a different playable challenge',
+    idea:'Record two real attempts in available PS5 games to compare the same achievable task with honest results.',
+    hook:'What will happen when two PS5 games take on the same challenge?',
+    callToAction:'Which challenge should come next?'
+  }));
+  const result=validateAIPlan({ideas},plan);
+  assert.equal(result.mode,'hybrid');
+  assert.equal(result.generation.aiCount,12);
+  assert.equal(result.generation.templateCount,plan.slots.length-12);
+  assert.ok(result.slots.some(x=>x.source==='template'));
+  assert.ok(result.slots.every((s,i)=>s.date===plan.slots[i].date));
 });
