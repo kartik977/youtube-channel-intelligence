@@ -295,6 +295,7 @@ footer {margin-top:36px;border-top:1px solid #303141;padding-top:22px;display:fl
 .app[data-page="instagram"] {--theme-page-glow:rgba(243,86,167,.155)}
 .app[data-page="social"] {--theme-page-glow:rgba(86,185,205,.125)}
 .app[data-page="calendar"] {--theme-page-glow:rgba(112,112,241,.135)}
+.app[data-page="upload"] {--theme-page-glow:rgba(194,94,186,.14)}
 .app .main {
   position:relative;
   isolation:isolate;
