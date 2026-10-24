@@ -347,3 +347,25 @@ Opening the website at its base URL (with no hash) now displays a dedicated **Di
 The ChannelScope brand and new **Discover ChannelScope** sidebar link return to the welcome page (`#/home`). Direct deep links to all existing tools remain unchanged, including `#/youtube/overview`, `#/instagram/studio`, and `#/creator/content-calendar`. Browser back/forward works through the existing hash navigation. Explicit URLs are never redirected away from their chosen workspace.
 
 The **Creator Tools** sidebar heading now reads **Shared Tools** instead of the duplicated "Creator Tools Tools" label. The homepage does not display public-metrics search, fictitious channel counts, or the demo warning until the user intentionally enters the YouTube workspace. There are no new APIs, credentials, dependencies, cookies, analytics, or auto-publishing actions.
+
+
+## Video Upload Studio — Instagram Reels + YouTube Shorts from your own clip
+
+Visit **Creator Tools → Video Upload Studio** (also linked from the homepage). Direct URL: `#/creator/video-upload-studio`.
+
+1. Select or drag in a browser-playable video (MP4/H.264 or WebM recommended; up to **300 MB** on your device). Preview it in your browser.
+2. Optionally edit the working title, explain what happens (including anything not visible in stills), and select a writing style.
+3. Click **Analyze my clip**. ChannelScope samples **three small JPEG frames locally** at early, middle and late timestamps; the original video file and audio are **not uploaded or stored**.
+4. If the existing `GROQ_API_KEY` Cloudflare secret is configured and the account can use Groq vision, the Worker sends those selected images and the written context to Groq's `qwen/qwen3.8-27b` vision model. Groq can produce separate, copy-ready drafts:
+   - **Instagram Reel:** two captions, topic-based hashtags, opening hook, three editing tips.
+   - **YouTube Short:** three title options, description, topic-based hashtags, two hooks, three editing tips.
+5. If vision is unavailable, invalid, or rate-limited, the interface prominently labels a **TEXT-ONLY FALLBACK** derived from the user's title and written description. It **never claims** to have visually analyzed the clip in fallback mode.
+
+### Honest limitations and privacy
+
+- Vision sees only **three still frames**. It cannot inspect full motion, hear music, transcribe speech, verify a gameplay outcome, or assess retention, clicks or trends. Users must check the wording against their full video. Hashtags do not guarantee reach.
+- The **original file stays on the creator's device**. Up to three compressed JPEG frame images and the optional user text are transmitted through the Cloudflare Worker to Groq when the creator explicitly clicks Analyze. Those frames are not saved by ChannelScope; **Groq is a separate processing provider**, subject to its own data policies. Avoid private/sensitive videos or use descriptive text instead in Social Publishing.
+- Cloudflare Workers and Groq process the request in memory. The API enforces a small JSON payload and strictly validates image formats, frame count, and clip metadata. This helps reduce accidental large uploads, though an owner of a widely used public deployment should add Cloudflare rate limiting to protect shared free quotas.
+- There is no Instagram or YouTube login, automatic publishing, original video upload, persistent library or added paid dependency. The Groq API key remains server-side, and the optional `GROQ_VISION_MODEL` secret/variable can override the default supported model.
+- Groq model availability and free-tier request limits change. The free text-only fallback remains operational without the key, but it **does not analyze pixels**. Browser support depends on the clip's codec; MP4/H.264 and WebM are recommended.
+
