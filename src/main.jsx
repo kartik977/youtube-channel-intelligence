@@ -17,6 +17,7 @@ import InstagramStudio from './InstagramStudio';
 import SocialPublishing from './SocialPublishing';
 import ContentCalendar from './ContentCalendar';
 import WelcomeHome from './WelcomeHome';
+import VideoUploadStudio from './VideoUploadStudio';
 import {ideaToOptimizerDraft} from './calendar-optimizer.js';
 import {workspaceConfig,getWorkspace,getWorkspaceForTab,defaultTabForWorkspace,tabsForWorkspace,hashForTab,tabFromHash} from './workspace-routing.js';
 import './styles.css';
@@ -31,7 +32,8 @@ const tabs = [
   { id: 'opportunities', label: 'Content Opportunities', icon: Target },
   { id: 'instagram', label: 'Instagram Studio', icon: Instagram },
   { id: 'social', label: 'Social Publishing', icon: Send },
-  { id: 'calendar', label: 'Content Calendar', icon: CalendarDays }
+  { id: 'calendar', label: 'Content Calendar', icon: CalendarDays },
+  { id: 'upload', label: 'Video Upload Studio', icon: Video }
 ];
 const workspaceIcons = {youtube:Youtube,instagram:Instagram,creator:Layers3};
 const compact = n => n == null ? '—' : new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
@@ -292,22 +294,22 @@ function App(){
         ?'Public channel analytics, video strategy and YouTube optimization.'
         :activeWorkspace.id==='instagram'
           ?'Instagram bios, captions and hashtags. No account connection needed.'
-          :'Plan content across Instagram and YouTube, or prepare a publishing pack.'}</p>
+          :'Plan, review video frames, and prepare drafts for Instagram Reels and YouTube Shorts.'}</p>
       <div className="sidebar-bottom"><div className="sidebar-note"><Sparkles size={19}/><strong>Built for curious creators</strong><p>Find better questions to ask about your content.</p></div>
       <div className="side-footer"><span className="status-dot"/> PUBLIC DATA · FREE STARTER</div></div>
     </aside>
     {menu && <button className="mobile-overlay" aria-label="Close navigation" onClick={()=>setMenu(false)}/>}
     <main className="main">
       <header className="topbar"><div className="crumb"><button className="mobile-menu" onClick={()=>setMenu(v=>!v)} aria-label="Menu">{menu?<X/>:<Menu/>}</button><span className="crumb-platform">{isLanding?'ChannelScope':activeWorkspace.label}</span><span>/</span><strong>{isLanding?'Discover':tabs.find(t=>t.id===tab)?.label||'Overview'}</strong></div>
-        <span className="source-indicator"><span className="status-dot"/>{isLanding?'FREE CREATOR TOOLS':['instagram','social','calendar'].includes(tab)?'NO LOGIN NEEDED':tab==='optimizer'&&optimizerDraft.origin==='calendar'?'PLANNED SHORT DRAFT':data.source==='demo'?'DEMO DATA':'PUBLIC YOUTUBE DATA'}</span></header>
+        <span className="source-indicator"><span className="status-dot"/>{isLanding?'FREE CREATOR TOOLS':['instagram','social','calendar','upload'].includes(tab)?'NO LOGIN NEEDED':tab==='optimizer'&&optimizerDraft.origin==='calendar'?'PLANNED SHORT DRAFT':data.source==='demo'?'DEMO DATA':'PUBLIC YOUTUBE DATA'}</span></header>
       <div className="content">
-        {tab!=='home'&&!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&<div className="search-row"><form className="search-form" onSubmit={submit}><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)}
+        {tab!=='home'&&!['instagram','social','calendar','upload'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&<div className="search-row"><form className="search-form" onSubmit={submit}><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)}
           aria-label="Channel handle or URL" placeholder="Enter @channelhandle or YouTube channel URL" required/>
           <button className="primary-btn" disabled={busy}>{busy?<RefreshCw size={16} className="spin"/>:<ArrowRight size={16}/>} {busy?'Analyzing…':'Analyze channel'}</button></form>
           <button className="outline-btn" onClick={showDemo}><Play size={14}/>Try demo</button></div>}
         {error && <div className="error"><AlertCircle size={18}/><span>{error}</span><button onClick={()=>setError('')} aria-label="Dismiss"><X size={16}/></button></div>}
-        {tab!=='home'&&!['instagram','social','calendar'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&data.source==='demo' && <p className="demo-banner"><Info size={16}/> You're viewing <strong>fictional demo data.</strong> Connect your YouTube API key to explore real public channel metrics.</p>}
-        {tab==='home'&&<WelcomeHome onExplore={id=>switchTab(defaultTabForWorkspace(id))} onDemo={showDemo} onCalendar={()=>switchTab('calendar')}/>}
+        {tab!=='home'&&!['instagram','social','calendar','upload'].includes(tab)&&!(tab==='optimizer'&&optimizerDraft.origin==='calendar')&&data.source==='demo' && <p className="demo-banner"><Info size={16}/> You're viewing <strong>fictional demo data.</strong> Connect your YouTube API key to explore real public channel metrics.</p>}
+        {tab==='home'&&<WelcomeHome onExplore={id=>switchTab(defaultTabForWorkspace(id))} onDemo={showDemo} onCalendar={()=>switchTab('calendar')} onUpload={()=>switchTab('upload')}/>}
         {tab==='overview'&&<Overview data={data} model={model} showVideos={()=>switchTab('videos')}/>}
         {tab==='videos'&&<VideoLibrary data={data}/>}
         {tab==='compare'&&<Comparison key={data.channel.id} data={data} model={model}/>}
@@ -318,7 +320,8 @@ function App(){
         {tab==='instagram'&&<InstagramStudio/>}
         {tab==='social'&&<SocialPublishing/>}
         {tab==='calendar'&&<ContentCalendar onUseIdea={useCalendarIdea}/>}
-        <footer><span>ChannelScope · Independent creator tools</span><span>{isLanding?'Explore free creator tools · Public YouTube data only · No automatic publishing':tab==='calendar'?'Draft content calendar · No scheduling, publishing or account connection':tab==='social'?'Instagram + YouTube Shorts drafts only · No account connection or posting · Independent creator tools':tab==='instagram'?'Instagram drafts only · No posting or account connection · Not affiliated with Instagram':(data.source==='demo'?'Fictional example':'Fetched '+day(data.fetchedAt))+' · Public YouTube data · Not affiliated with YouTube'}</span></footer>
+        {tab==='upload'&&<VideoUploadStudio/>}
+        <footer><span>ChannelScope · Independent creator tools</span><span>{isLanding?'Explore free creator tools · Public YouTube data only · No automatic publishing':tab==='upload'?'Video sampled locally · Optional AI frame interpretation · No automatic publishing':tab==='calendar'?'Draft content calendar · No scheduling, publishing or account connection':tab==='social'?'Instagram + YouTube Shorts drafts only · No account connection or posting · Independent creator tools':tab==='instagram'?'Instagram drafts only · No posting or account connection · Not affiliated with Instagram':(data.source==='demo'?'Fictional example':'Fetched '+day(data.fetchedAt))+' · Public YouTube data · Not affiliated with YouTube'}</span></footer>
       </div>
     </main>
   </div>;
