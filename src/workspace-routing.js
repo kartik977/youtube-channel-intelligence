@@ -5,13 +5,13 @@ export const workspaceConfig=[
   {id:'instagram',label:'Instagram',subtitle:'Reels & profile writing',route:'instagram',home:'instagram',
     tabIds:['instagram']},
   {id:'creator',label:'Creator Tools',subtitle:'Across both platforms',route:'creator',home:'social',
-    tabIds:['social','calendar']}
+    tabIds:['social','calendar','upload']}
 ];
 const paths={
   overview:'overview',videos:'video-library',compare:'compare-channels',
   insights:'creator-insights',advisor:'ai-creator-advisor',optimizer:'video-optimizer',
   opportunities:'content-opportunities',instagram:'studio',
-  social:'social-publishing',calendar:'content-calendar'
+  social:'social-publishing',calendar:'content-calendar',upload:'video-upload-studio'
 };
 export const tabIds=Object.keys(paths);
 export function getWorkspaceForTab(tab){

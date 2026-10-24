@@ -29,7 +29,7 @@ test('Visitors at the root website see Welcome Home, existing hashes continue di
   assert.match(main,/aria-label="ChannelScope home"/);
 });
 test('Landing is a first-visit experience instead of fictional demo metrics or YouTube search',()=>{
-  assert.match(main,/tab!=='home'&&!\['instagram','social','calendar'\]\.includes\(tab\)/);
+  assert.match(main,/tab!=='home'&&!\['instagram','social','calendar','upload'\]\.includes\(tab\)/);
   assert.match(main,/isLanding\?'FREE CREATOR TOOLS'/);
   assert.match(main,/isLanding\?'ChannelScope'/);
   assert.match(main,/isLanding\?\[\]:tabs\.filter/);

@@ -11,7 +11,7 @@ test('YouTube analytics and optimizer tools never appear as Instagram-only tools
     'overview','videos','compare','insights','advisor','optimizer','opportunities'
   ]);
   assert.deepEqual(tabsForWorkspace('instagram'),['instagram']);
-  assert.deepEqual(tabsForWorkspace('creator'),['social','calendar']);
+  assert.deepEqual(tabsForWorkspace('creator'),['social','calendar','upload']);
   const seen=workspaceConfig.flatMap(workspace=>workspace.tabIds);
   assert.equal(new Set(seen).size,seen.length);
   assert.deepEqual([...seen].sort(),[...tabIds].sort());
@@ -19,6 +19,7 @@ test('YouTube analytics and optimizer tools never appear as Instagram-only tools
   assert.equal(getWorkspaceForTab('instagram'),'instagram');
   assert.equal(getWorkspaceForTab('social'),'creator');
   assert.equal(getWorkspaceForTab('calendar'),'creator');
+  assert.equal(getWorkspaceForTab('upload'),'creator');
 });
 test('Each workspace has a separate platform home and deep-linkable URL',()=>{
   assert.equal(defaultTabForWorkspace('youtube'),'overview');
@@ -28,6 +29,7 @@ test('Each workspace has a separate platform home and deep-linkable URL',()=>{
   assert.equal(hashForTab('instagram'),'#/instagram/studio');
   assert.equal(hashForTab('social'),'#/creator/social-publishing');
   assert.equal(hashForTab('calendar'),'#/creator/content-calendar');
+  assert.equal(hashForTab('upload'),'#/creator/video-upload-studio');
   assert.equal(hashForTab('optimizer'),'#/youtube/video-optimizer');
   for(const tab of tabIds) assert.equal(tabFromHash(hashForTab(tab)),tab);
 });
@@ -67,7 +69,7 @@ test('Calendar-to-Video Optimizer navigation and Instagram independence are pres
   assert.match(main,/tab==='social'&&<SocialPublishing\/>/);
   assert.match(main,/tab==='calendar'&&<ContentCalendar/);
   assert.match(main,/tab==='optimizer'&&<VideoOptimizer/);
-  assert.match(main,/!?\['instagram','social','calendar'\]\.includes\(tab\)/);
+  assert.match(main,/!?\['instagram','social','calendar','upload'\]\.includes\(tab\)/);
   const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
   assert.match(css,/\.workspace-switcher/);
   assert.match(css,/\.workspace-choice\.active/);
