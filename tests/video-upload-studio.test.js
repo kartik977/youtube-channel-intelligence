@@ -115,7 +115,7 @@ test('Unsupported vision access and malformed responses fail gracefully without 
 test('API rejects large, missing, or non-JSON uploads and preserves other Worker routes',async()=>{
  let response=await onRequestPost({request:new Request('https://a.test/api/video-upload-studio',{method:'POST',body:'not-json'}),env:{}});
  assert.equal(response.status,415);
- response=await onRequestPost({request:req({...base,frames:[frame.repeat(30000)]}),env:{}});
+ response=await onRequestPost({request:req({...base,frames:['data:image/jpeg;base64,'+'A'.repeat(210000)]}),env:{}});
  assert.equal(response.status,400);
  response=await onRequestPost({request:req({...base,description:'x'.repeat(750000)}),env:{}});
  // Inputs longer than allowed are truncated after transport-size checks.
