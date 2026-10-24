@@ -1,5 +1,5 @@
 import React from 'react';
-import {Youtube,Instagram,Layers3,ArrowRight,Sparkles,BarChart3,CalendarDays,PenLine,Check,PlayCircle} from 'lucide-react';
+import {Youtube,Instagram,Layers3,ArrowRight,Sparkles,BarChart3,CalendarDays,PenLine,Check,PlayCircle,UploadCloud} from 'lucide-react';
 import './welcome-home.css';
 
 const workspaces=[
@@ -20,13 +20,13 @@ const workspaces=[
   {
     id:'creator',icon:Layers3,eyebrow:'CROSS-PLATFORM TOOLS',
     title:'Plan once. Create for both.',
-    description:'Build a realistic content calendar and prepare distinct Instagram and YouTube Shorts drafts.',
-    features:['Content Calendar','Social Publishing','Copy-ready drafts'],
+    description:'Upload your own clip for platform-specific suggestions, build a content calendar, and draft posts for both platforms.',
+    features:['Video Upload Studio','Content Calendar','Social Publishing'],
     cta:'Open Creator Tools'
   }
 ];
 
-export default function WelcomeHome({onExplore,onDemo,onCalendar}){
+export default function WelcomeHome({onExplore,onDemo,onCalendar,onUpload}){
   return <div className="welcome-home">
     <section className="welcome-hero" aria-labelledby="welcome-title">
       <div className="welcome-hero-copy">
@@ -83,10 +83,11 @@ export default function WelcomeHome({onExplore,onDemo,onCalendar}){
     <section className="welcome-next" aria-label="Quick ways to get started">
       <div className="welcome-next-icon"><PlayCircle size={23}/></div>
       <div><strong>New here? You can explore before connecting anything.</strong>
-        <p>Try fictional YouTube demo data, or plan a week of posts without an account.</p></div>
+        <p>Explore a fictional YouTube demo, plan a content week, or get ideas from your own video clip.</p></div>
       <div className="welcome-next-actions">
         <button type="button" onClick={onDemo}>Try YouTube demo <ArrowRight size={14}/></button>
         <button type="button" onClick={onCalendar}>Plan a content week <CalendarDays size={14}/></button>
+        <button type="button" onClick={onUpload}>Analyze my video <UploadCloud size={14}/></button>
       </div>
     </section>
   </div>;
